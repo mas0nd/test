@@ -1336,163 +1336,725 @@ console.log('- beefIsolationEscapeTests()');
 
         // Browser Abuse Functions
         async function testExtensionAccess() {
-            log('browser', '🔍 Starting browser extension enumeration...', 'critical');
+            log('browser', '🔍 Starting comprehensive browser extension enumeration...', 'critical');
             escapeAttempts++;
             browserTestCount++;
             
             const output = document.getElementById('browser-output');
             
-            // Clear previous results for clean screenshots
-            const existingExtensionSection = output.querySelector('.screenshot-section');
-            if (existingExtensionSection) {
-                existingExtensionSection.remove();
-            }
+            // Clear previous results for clean display
+            const existingSections = output.querySelectorAll('.screenshot-section, .highlight-box');
+            existingSections.forEach(section => {
+                if (section.textContent.includes('Extension')) {
+                    section.remove();
+                }
+            });
             
-            displayHighlightBox('browser', 'Extension Enumeration Results', 'Scanning for accessible browser extensions...');
+            displayHighlightBox('browser', 'EXTENSION ENUMERATION IN PROGRESS', 'Scanning for accessible browser extensions and APIs...');
             
-            // Test common extension protocols and IDs
+            // Comprehensive extension list with more details
             const commonExtensions = [
-                { name: 'AdBlock', id: 'gighmmpiobklfepjocnamgkkbiglidom', protocol: 'chrome-extension' },
-                { name: 'uBlock Origin', id: 'cjpalhdlnbpafiamejdnhcphjbkeiagm', protocol: 'chrome-extension' },
-                { name: 'LastPass', id: 'hdokiejnpimakedhajhdlcegeplioahd', protocol: 'chrome-extension' },
-                { name: 'Metamask', id: 'nkbihfbeogaeaoehlefnkodbefgpgknn', protocol: 'chrome-extension' },
-                { name: 'Honey', id: 'bmnlcjabgnpnenekpadlanbbkooimhnj', protocol: 'chrome-extension' },
-                { name: 'Grammarly', id: 'kbfnbcaeplbcioakkpcpgfkobkghlhen', protocol: 'chrome-extension' },
-                { name: 'ColorZilla', id: 'bhlhnicpbhignkljdhlakddgfx91mmgq', protocol: 'chrome-extension' },
-                { name: 'React DevTools', id: 'fmkadmapgofadopljbjfkapdkoienihi', protocol: 'chrome-extension' }
+                { name: 'AdBlock', id: 'gighmmpiobklfepjocnamgkkbiglidom', protocol: 'chrome-extension', risk: 'High - Ad blocking bypass' },
+                { name: 'uBlock Origin', id: 'cjpalhdlnbpafiamejdnhcphjbkeiagm', protocol: 'chrome-extension', risk: 'High - Content filtering bypass' },
+                { name: 'LastPass', id: 'hdokiejnpimakedhajhdlcegeplioahd', protocol: 'chrome-extension', risk: 'Critical - Password manager access' },
+                { name: 'Metamask', id: 'nkbihfbeogaeaoehlefnkodbefgpgknn', protocol: 'chrome-extension', risk: 'Critical - Cryptocurrency wallet access' },
+                { name: 'Honey', id: 'bmnlcjabgnpnenekpadlanbbkooimhnj', protocol: 'chrome-extension', risk: 'Medium - Shopping data access' },
+                { name: 'Grammarly', id: 'kbfnbcaeplbcioakkpcpgfkobkghlhen', protocol: 'chrome-extension', risk: 'High - Text input monitoring' },
+                { name: 'ColorZilla', id: 'bhlhnicpbhignkljdhlakddgfx91mmgq', protocol: 'chrome-extension', risk: 'Low - Color picker' },
+                { name: 'React DevTools', id: 'fmkadmapgofadopljbjfkapdkoienihi', protocol: 'chrome-extension', risk: 'Medium - Development access' },
+                { name: '1Password', id: 'aeblfdkhhhdcdjpifhhbdiojplfjncoa', protocol: 'chrome-extension', risk: 'Critical - Password manager access' },
+                { name: 'Bitwarden', id: 'nngceckbapebfimnlniiiahkandclblb', protocol: 'chrome-extension', risk: 'Critical - Password manager access' },
+                { name: 'NordVPN', id: 'fjoaledfpmneenckfbpdfhkmimnjocfa', protocol: 'chrome-extension', risk: 'High - VPN bypass' },
+                { name: 'Ghostery', id: 'mlomiejdfkolichcflejclcbmpeaniij', protocol: 'chrome-extension', risk: 'High - Privacy tool bypass' }
             ];
             
             const foundExtensions = [];
+            const extensionErrors = [];
+            let totalScanned = 0;
+            
+            log('browser', `Scanning ${commonExtensions.length} common extensions...`, 'info');
             
             for (const ext of commonExtensions) {
+                totalScanned++;
                 try {
                     const manifestUrl = `${ext.protocol}://${ext.id}/manifest.json`;
+                    log('browser', `Testing: ${ext.name} (${ext.id})`, 'info');
+                    
                     const response = await fetch(manifestUrl, {
                         method: 'GET',
-                        mode: 'cors'
+                        mode: 'cors',
+                        signal: AbortSignal.timeout(3000)
                     });
                     
                     if (response.ok) {
                         const manifest = await response.text();
-                        const manifestObj = JSON.parse(manifest);
+                        let manifestObj;
                         
-                        foundExtensions.push({
+                        try {
+                            manifestObj = JSON.parse(manifest);
+                        } catch (parseError) {
+                            manifestObj = { raw: manifest, parseError: parseError.message };
+                        }
+                        
+                        const extensionData = {
                             name: ext.name,
                             id: ext.id,
                             protocol: ext.protocol,
+                            risk: ext.risk,
                             version: manifestObj.version || 'Unknown',
                             permissions: manifestObj.permissions || [],
-                            manifest: manifestObj
-                        });
+                            manifest: manifestObj,
+                            accessible: true,
+                            manifestSize: manifest.length
+                        };
                         
-                        // Create extension card
+                        foundExtensions.push(extensionData);
+                        
+                        // Create detailed extension card
                         const extensionHtml = `
                             <div class="extension-card">
-                                <h4>🚨 FOUND: ${ext.name}</h4>
-                                <div class="json-viewer">${formatJSON(manifestObj)}</div>
+                                <h4>🚨 CRITICAL FINDING: ${ext.name} ACCESSIBLE</h4>
+                                <div class="key-value-pair">
+                                    <span class="key">Extension ID:</span>
+                                    <span class="value">${ext.id}</span>
+                                </div>
+                                <div class="key-value-pair">
+                                    <span class="key">Risk Level:</span>
+                                    <span class="value" style="color: #ff6b6b;">${ext.risk}</span>
+                                </div>
+                                <div class="key-value-pair">
+                                    <span class="key">Version:</span>
+                                    <span class="value">${extensionData.version}</span>
+                                </div>
+                                <div class="key-value-pair">
+                                    <span class="key">Permissions:</span>
+                                    <span class="value">${extensionData.permissions.length} permissions detected</span>
+                                </div>
+                                <div class="key-value-pair">
+                                    <span class="key">Manifest Size:</span>
+                                    <span class="value">${manifest.length} bytes</span>
+                                </div>
+                                <details style="margin-top: 10px;">
+                                    <summary style="color: #4dabf7; cursor: pointer;">View Full Manifest</summary>
+                                    <div class="json-viewer" style="margin-top: 10px; max-height: 300px; overflow-y: auto;">
+                                        ${formatJSON(manifestObj)}
+                                    </div>
+                                </details>
                             </div>
                         `;
                         output.innerHTML += extensionHtml;
                         
-                        log('browser', `🚨 Extension accessible: ${ext.name} (${ext.id})`, 'critical');
+                        log('browser', `🚨 EXTENSION ACCESSIBLE: ${ext.name}`, 'critical');
+                        log('browser', `  ID: ${ext.id}`, 'critical');
+                        log('browser', `  Risk: ${ext.risk}`, 'critical');
+                        log('browser', `  Version: ${extensionData.version}`, 'info');
+                        log('browser', `  Permissions: ${extensionData.permissions.length}`, 'info');
                         successfulAttacks++;
+                    } else {
+                        extensionErrors.push({
+                            name: ext.name,
+                            id: ext.id,
+                            error: `HTTP ${response.status} - ${response.statusText}`,
+                            accessible: false
+                        });
+                        log('browser', `❌ ${ext.name}: HTTP ${response.status}`, 'info');
                     }
                 } catch (error) {
-                    log('browser', `Extension not accessible: ${ext.name}`, 'info');
+                    extensionErrors.push({
+                        name: ext.name,
+                        id: ext.id,
+                        error: error.message,
+                        accessible: false
+                    });
+                    log('browser', `❌ ${ext.name}: ${error.message}`, 'info');
                 }
+                
+                // Small delay to avoid overwhelming requests
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
             
-            // Test extension API access
+            // Test Chrome Extension APIs with explicit results
+            log('browser', 'Testing Chrome Extension API access...', 'info');
             const apiTests = [];
             
             try {
+                // Test chrome object availability
                 if (typeof chrome !== 'undefined') {
-                    apiTests.push({ api: 'chrome', available: true, details: 'Chrome object detected' });
+                    apiTests.push({ 
+                        api: 'chrome', 
+                        available: true, 
+                        details: 'Chrome object detected in global scope',
+                        risk: 'Medium - Extension context available'
+                    });
+                    log('browser', '🚨 Chrome object accessible!', 'critical');
                     
+                    // Test chrome.runtime
                     if (chrome.runtime) {
-                        apiTests.push({ api: 'chrome.runtime', available: true, details: `ID: ${chrome.runtime.id || 'Unknown'}` });
+                        const runtimeId = chrome.runtime.id || 'Unknown';
+                        apiTests.push({ 
+                            api: 'chrome.runtime', 
+                            available: true, 
+                            details: `Runtime ID: ${runtimeId}`,
+                            risk: 'High - Extension runtime access'
+                        });
+                        log('browser', `🚨 chrome.runtime accessible! ID: ${runtimeId}`, 'critical');
                         successfulAttacks++;
+                    } else {
+                        apiTests.push({ 
+                            api: 'chrome.runtime', 
+                            available: false, 
+                            details: 'Runtime API not accessible',
+                            risk: 'N/A'
+                        });
+                        log('browser', '✅ chrome.runtime blocked', 'success');
                     }
                     
+                    // Test chrome.tabs
                     if (chrome.tabs) {
-                        apiTests.push({ api: 'chrome.tabs', available: true, details: 'Tabs API accessible' });
+                        apiTests.push({ 
+                            api: 'chrome.tabs', 
+                            available: true, 
+                            details: 'Tab management API accessible',
+                            risk: 'Critical - Tab manipulation possible'
+                        });
+                        log('browser', '🚨 chrome.tabs accessible - tab manipulation possible!', 'critical');
                         successfulAttacks++;
+                    } else {
+                        apiTests.push({ 
+                            api: 'chrome.tabs', 
+                            available: false, 
+                            details: 'Tabs API not accessible',
+                            risk: 'N/A'
+                        });
+                        log('browser', '✅ chrome.tabs blocked', 'success');
                     }
                     
+                    // Test chrome.storage
                     if (chrome.storage) {
-                        apiTests.push({ api: 'chrome.storage', available: true, details: 'Storage API accessible' });
+                        apiTests.push({ 
+                            api: 'chrome.storage', 
+                            available: true, 
+                            details: 'Extension storage API accessible',
+                            risk: 'High - Extension data access'
+                        });
+                        log('browser', '🚨 chrome.storage accessible - extension data vulnerable!', 'critical');
                         successfulAttacks++;
+                    } else {
+                        apiTests.push({ 
+                            api: 'chrome.storage', 
+                            available: false, 
+                            details: 'Storage API not accessible',
+                            risk: 'N/A'
+                        });
+                        log('browser', '✅ chrome.storage blocked', 'success');
                     }
                     
+                    // Test chrome.webRequest
                     if (chrome.webRequest) {
-                        apiTests.push({ api: 'chrome.webRequest', available: true, details: 'WebRequest API accessible' });
+                        apiTests.push({ 
+                            api: 'chrome.webRequest', 
+                            available: true, 
+                            details: 'Web request interception API accessible',
+                            risk: 'Critical - Network traffic interception'
+                        });
+                        log('browser', '🚨 chrome.webRequest accessible - traffic interception possible!', 'critical');
                         successfulAttacks++;
+                    } else {
+                        apiTests.push({ 
+                            api: 'chrome.webRequest', 
+                            available: false, 
+                            details: 'WebRequest API not accessible',
+                            risk: 'N/A'
+                        });
+                        log('browser', '✅ chrome.webRequest blocked', 'success');
                     }
+                    
                 } else {
-                    apiTests.push({ api: 'chrome', available: false, details: 'Chrome object not available' });
+                    apiTests.push({ 
+                        api: 'chrome', 
+                        available: false, 
+                        details: 'Chrome object not available in global scope',
+                        risk: 'N/A'
+                    });
+                    log('browser', '✅ Chrome object not accessible', 'success');
                 }
+                
+                // Test other browser extension contexts
+                if (typeof browser !== 'undefined') {
+                    apiTests.push({ 
+                        api: 'browser (WebExtensions)', 
+                        available: true, 
+                        details: 'WebExtensions API available',
+                        risk: 'High - Firefox extension context'
+                    });
+                    log('browser', '🚨 WebExtensions API accessible!', 'critical');
+                    successfulAttacks++;
+                } else {
+                    apiTests.push({ 
+                        api: 'browser (WebExtensions)', 
+                        available: false, 
+                        details: 'WebExtensions API not available',
+                        risk: 'N/A'
+                    });
+                    log('browser', '✅ WebExtensions API not accessible', 'success');
+                }
+                
             } catch (error) {
-                apiTests.push({ api: 'chrome', available: false, details: `Error: ${error.message}` });
+                apiTests.push({ 
+                    api: 'Extension APIs (General)', 
+                    available: false, 
+                    details: `Error testing APIs: ${error.message}`,
+                    risk: 'N/A'
+                });
+                log('browser', `❌ Extension API testing error: ${error.message}`, 'error');
             }
             
-            // Display API test results in a table
+            // Display comprehensive results
+            if (foundExtensions.length > 0) {
+                displayDataTable('browser', `🚨 CRITICAL: ${foundExtensions.length} Extensions Accessible`, 
+                    foundExtensions.map(ext => ({
+                        'Extension Name': ext.name,
+                        'Extension ID': ext.id,
+                        'Risk Level': ext.risk,
+                        'Version': ext.version,
+                        'Permissions': ext.permissions.length,
+                        'Manifest Size': ext.manifestSize + ' bytes'
+                    })), 
+                    ['Extension Name', 'Extension ID', 'Risk Level', 'Version', 'Permissions', 'Manifest Size']
+                );
+                
+                log('browser', `🚨 CRITICAL SECURITY ISSUE: ${foundExtensions.length} extensions accessible!`, 'critical');
+            } else {
+                displayHighlightBox('browser', 'EXTENSION ACCESS RESULTS', 
+                    `✅ NO EXTENSIONS ACCESSIBLE\n\nScanned ${totalScanned} common extensions - all properly isolated.\nThis indicates good extension isolation policies.`);
+                log('browser', `✅ Extension isolation effective - 0/${totalScanned} extensions accessible`, 'success');
+            }
+            
+            // Display API test results
             if (apiTests.length > 0) {
-                displayDataTable('browser', 'Extension API Access Test Results', apiTests, ['api', 'available', 'details']);
+                displayDataTable('browser', 'Extension API Access Test Results', apiTests, ['api', 'available', 'details', 'risk']);
+                
+                const accessibleAPIs = apiTests.filter(t => t.available);
+                if (accessibleAPIs.length > 0) {
+                    log('browser', `🚨 ${accessibleAPIs.length} Extension APIs accessible!`, 'critical');
+                } else {
+                    log('browser', '✅ All Extension APIs properly blocked', 'success');
+                }
             }
             
-            // Display summary
-            displayDataCard('browser', `Extension Scan Summary (${foundExtensions.length} found)`, {
-                totalScanned: commonExtensions.length,
-                foundExtensions: foundExtensions.length,
+            // Display comprehensive summary
+            const extensionSummary = {
+                totalExtensionsScanned: totalScanned,
+                accessibleExtensions: foundExtensions.length,
+                blockedExtensions: extensionErrors.length,
                 accessibleAPIs: apiTests.filter(t => t.available).length,
-                criticalFindings: foundExtensions.map(e => `${e.name} (${e.version})`)
-            }, 'key-value');
+                blockedAPIs: apiTests.filter(t => !t.available).length,
+                criticalRiskExtensions: foundExtensions.filter(e => e.risk.includes('Critical')).length,
+                highRiskExtensions: foundExtensions.filter(e => e.risk.includes('High')).length,
+                securityAssessment: foundExtensions.length === 0 ? 'SECURE - No extension access' : 'VULNERABLE - Extension access detected',
+                recommendations: foundExtensions.length > 0 ? [
+                    'Review extension isolation policies',
+                    'Implement stricter extension access controls',
+                    'Monitor extension-based attacks',
+                    'Consider disabling high-risk extensions'
+                ] : [
+                    'Extension isolation is functioning correctly',
+                    'Continue monitoring for new extension threats'
+                ]
+            };
+            
+            displayDataCard('browser', '📊 Extension Security Assessment Summary', extensionSummary, 'key-value');
+            
+            // Final explicit status
+            if (foundExtensions.length > 0 || apiTests.some(t => t.available)) {
+                log('browser', '🚨 EXTENSION ENUMERATION COMPLETE - VULNERABILITIES FOUND', 'critical');
+                log('browser', `Found ${foundExtensions.length} accessible extensions and ${apiTests.filter(t => t.available).length} accessible APIs`, 'critical');
+            } else {
+                log('browser', '✅ EXTENSION ENUMERATION COMPLETE - NO VULNERABILITIES', 'success');
+                log('browser', 'Browser extension isolation is functioning properly', 'success');
+            }
             
             updateStats();
-            log('browser', `Extension enumeration completed. Found ${foundExtensions.length} accessible extensions`, 'success');
         }
 
         async function testConfigModification() {
-            log('browser', '⚙️ Testing browser configuration modification...', 'critical');
+            log('browser', '⚙️ Starting comprehensive browser configuration modification tests...', 'critical');
             escapeAttempts++;
             browserTestCount++;
             
-            // Test localStorage/sessionStorage access
-            try {
-                localStorage.setItem('escape_test', 'success');
-                const testValue = localStorage.getItem('escape_test');
-                if (testValue === 'success') {
-                    log('browser', '🚨 localStorage write/read successful!', 'critical');
-                    successfulAttacks++;
+            const output = document.getElementById('browser-output');
+            
+            // Clear previous results
+            const existingSections = output.querySelectorAll('.screenshot-section, .highlight-box');
+            existingSections.forEach(section => {
+                if (section.textContent.includes('Config') || section.textContent.includes('Modification')) {
+                    section.remove();
                 }
-                localStorage.removeItem('escape_test');
+            });
+            
+            displayHighlightBox('browser', 'BROWSER CONFIGURATION MODIFICATION TESTING', 'Testing ability to modify browser configuration and state...');
+            
+            const configTestResults = {};
+            let modificationsSuccessful = 0;
+            let totalTests = 0;
+            
+            // Test 1: localStorage Access and Modification
+            log('browser', 'Testing localStorage configuration access...', 'info');
+            totalTests++;
+            try {
+                const testKey = 'isolation_escape_config_test';
+                const testData = {
+                    timestamp: Date.now(),
+                    userAgent: navigator.userAgent,
+                    origin: window.location.origin,
+                    testType: 'configuration_modification',
+                    browserInfo: {
+                        platform: navigator.platform,
+                        language: navigator.language,
+                        cookieEnabled: navigator.cookieEnabled
+                    }
+                };
+                
+                // Test write access
+                localStorage.setItem(testKey, JSON.stringify(testData));
+                
+                // Test read access
+                const retrievedData = localStorage.getItem(testKey);
+                
+                if (retrievedData) {
+                    const parsedData = JSON.parse(retrievedData);
+                    configTestResults.localStorage = {
+                        accessible: true,
+                        writeAccess: true,
+                        readAccess: true,
+                        persistentData: true,
+                        testDataSize: retrievedData.length,
+                        existingKeys: Object.keys(localStorage).length,
+                        securityRisk: 'High - Persistent data storage possible'
+                    };
+                    
+                    log('browser', '🚨 localStorage FULLY ACCESSIBLE - Write/Read confirmed!', 'critical');
+                    log('browser', `  Test data size: ${retrievedData.length} bytes`, 'info');
+                    log('browser', `  Existing keys: ${Object.keys(localStorage).length}`, 'info');
+                    modificationsSuccessful++;
+                    successfulAttacks++;
+                    
+                    // Clean up test data
+                    localStorage.removeItem(testKey);
+                } else {
+                    configTestResults.localStorage = {
+                        accessible: false,
+                        writeAccess: false,
+                        readAccess: false,
+                        error: 'Write operation failed silently'
+                    };
+                    log('browser', '✅ localStorage write access blocked', 'success');
+                }
+                
             } catch (error) {
-                log('browser', 'localStorage access blocked', 'warning');
+                configTestResults.localStorage = {
+                    accessible: false,
+                    error: error.message,
+                    securityStatus: 'Protected'
+                };
+                log('browser', `✅ localStorage access denied: ${error.message}`, 'success');
             }
             
-            // Test cookie access
+            // Test 2: sessionStorage Access and Modification
+            log('browser', 'Testing sessionStorage configuration access...', 'info');
+            totalTests++;
             try {
-                document.cookie = 'escape_test=success; path=/';
-                if (document.cookie.includes('escape_test=success')) {
-                    log('browser', '🚨 Cookie write access successful!', 'critical');
+                const sessionTestKey = 'session_config_test';
+                const sessionTestData = {
+                    sessionStart: Date.now(),
+                    sessionId: Math.random().toString(36),
+                    capabilities: {
+                        webrtc: typeof RTCPeerConnection !== 'undefined',
+                        websockets: typeof WebSocket !== 'undefined',
+                        geolocation: 'geolocation' in navigator,
+                        notifications: 'Notification' in window
+                    }
+                };
+                
+                sessionStorage.setItem(sessionTestKey, JSON.stringify(sessionTestData));
+                const sessionRetrieved = sessionStorage.getItem(sessionTestKey);
+                
+                if (sessionRetrieved) {
+                    configTestResults.sessionStorage = {
+                        accessible: true,
+                        writeAccess: true,
+                        readAccess: true,
+                        sessionData: true,
+                        testDataSize: sessionRetrieved.length,
+                        existingKeys: Object.keys(sessionStorage).length,
+                        securityRisk: 'Medium - Session-based data storage possible'
+                    };
+                    
+                    log('browser', '🚨 sessionStorage FULLY ACCESSIBLE - Write/Read confirmed!', 'critical');
+                    log('browser', `  Session data size: ${sessionRetrieved.length} bytes`, 'info');
+                    log('browser', `  Existing session keys: ${Object.keys(sessionStorage).length}`, 'info');
+                    modificationsSuccessful++;
                     successfulAttacks++;
+                } else {
+                    configTestResults.sessionStorage = {
+                        accessible: false,
+                        writeAccess: false,
+                        error: 'Write operation failed'
+                    };
+                    log('browser', '✅ sessionStorage write access blocked', 'success');
                 }
+                
             } catch (error) {
-                log('browser', 'Cookie access blocked', 'warning');
+                configTestResults.sessionStorage = {
+                    accessible: false,
+                    error: error.message,
+                    securityStatus: 'Protected'
+                };
+                log('browser', `✅ sessionStorage access denied: ${error.message}`, 'success');
             }
             
-            // Test history manipulation
+            // Test 3: Cookie Manipulation
+            log('browser', 'Testing cookie configuration and manipulation...', 'info');
+            totalTests++;
             try {
-                history.pushState({test: 'escape'}, 'Test', '/escape-test');
-                log('browser', '🚨 History manipulation successful!', 'critical');
-                successfulAttacks++;
-                history.back();
+                const originalCookies = document.cookie;
+                const testCookieName = 'config_test_cookie';
+                const testCookieValue = btoa(JSON.stringify({
+                    timestamp: Date.now(),
+                    test: 'browser_configuration_bypass',
+                    userAgent: navigator.userAgent,
+                    origin: window.location.origin
+                }));
+                
+                // Test cookie write
+                document.cookie = `${testCookieName}=${testCookieValue}; path=/; max-age=3600; SameSite=Lax`;
+                
+                // Test cookie read
+                const cookiesAfterWrite = document.cookie;
+                const cookieWriteSuccessful = cookiesAfterWrite.includes(testCookieName);
+                
+                if (cookieWriteSuccessful) {
+                    const allCookies = document.cookie.split(';').map(c => c.trim());
+                    configTestResults.cookies = {
+                        accessible: true,
+                        writeAccess: true,
+                        readAccess: true,
+                        totalCookies: allCookies.length,
+                        cookieData: document.cookie,
+                        testCookieSize: testCookieValue.length,
+                        securityRisk: 'High - Cookie manipulation possible'
+                    };
+                    
+                    log('browser', '🚨 COOKIE MANIPULATION SUCCESSFUL!', 'critical');
+                    log('browser', `  Total cookies: ${allCookies.length}`, 'info');
+                    log('browser', `  Test cookie size: ${testCookieValue.length} bytes`, 'info');
+                    log('browser', `  Cookie data accessible: ${document.cookie.length > 0 ? 'Yes' : 'No'}`, 'info');
+                    modificationsSuccessful++;
+                    successfulAttacks++;
+                } else {
+                    configTestResults.cookies = {
+                        accessible: navigator.cookieEnabled,
+                        writeAccess: false,
+                        readAccess: document.cookie.length > 0,
+                        totalCookies: document.cookie ? document.cookie.split(';').length : 0,
+                        securityStatus: 'Write-protected'
+                    };
+                    log('browser', '✅ Cookie write access blocked', 'success');
+                    if (document.cookie.length > 0) {
+                        log('browser', `  Existing cookies readable: ${document.cookie.split(';').length}`, 'warning');
+                    }
+                }
+                
             } catch (error) {
-                log('browser', 'History manipulation blocked', 'warning');
+                configTestResults.cookies = {
+                    accessible: false,
+                    error: error.message,
+                    securityStatus: 'Protected'
+                };
+                log('browser', `✅ Cookie access denied: ${error.message}`, 'success');
+            }
+            
+            // Test 4: History Manipulation
+            log('browser', 'Testing browser history manipulation...', 'info');
+            totalTests++;
+            try {
+                const originalUrl = window.location.href;
+                const testState = { 
+                    test: 'config_bypass', 
+                    timestamp: Date.now(),
+                    originalUrl: originalUrl 
+                };
+                
+                // Test history.pushState
+                history.pushState(testState, 'Configuration Test', '/config-escape-test');
+                
+                // Verify state change
+                const currentState = history.state;
+                const urlChanged = window.location.href !== originalUrl;
+                
+                if (urlChanged || currentState) {
+                    configTestResults.history = {
+                        accessible: true,
+                        pushStateAccess: true,
+                        stateModification: currentState !== null,
+                        urlModification: urlChanged,
+                        currentUrl: window.location.href,
+                        historyState: currentState,
+                        securityRisk: 'Medium - History manipulation possible'
+                    };
+                    
+                    log('browser', '🚨 HISTORY MANIPULATION SUCCESSFUL!', 'critical');
+                    log('browser', `  URL changed: ${urlChanged}`, 'info');
+                    log('browser', `  State modified: ${currentState !== null}`, 'info');
+                    log('browser', `  Current URL: ${window.location.href}`, 'info');
+                    modificationsSuccessful++;
+                    successfulAttacks++;
+                    
+                    // Clean up - go back
+                    history.back();
+                    setTimeout(() => {
+                        log('browser', `  Restored URL: ${window.location.href}`, 'info');
+                    }, 100);
+                } else {
+                    configTestResults.history = {
+                        accessible: false,
+                        pushStateAccess: false,
+                        securityStatus: 'Protected'
+                    };
+                    log('browser', '✅ History manipulation blocked', 'success');
+                }
+                
+            } catch (error) {
+                configTestResults.history = {
+                    accessible: false,
+                    error: error.message,
+                    securityStatus: 'Protected'
+                };
+                log('browser', `✅ History manipulation denied: ${error.message}`, 'success');
+            }
+            
+            // Test 5: Document Properties Modification
+            log('browser', 'Testing document property modification...', 'info');
+            totalTests++;
+            try {
+                const originalTitle = document.title;
+                const originalDomain = document.domain;
+                
+                // Test title modification
+                document.title = 'BROWSER_ISOLATION_BYPASS_TEST';
+                const titleChanged = document.title === 'BROWSER_ISOLATION_BYPASS_TEST';
+                
+                // Test domain access (usually restricted)
+                let domainAccessible = false;
+                let domainError = null;
+                try {
+                    document.domain = document.domain; // This should be safe but might be blocked
+                    domainAccessible = true;
+                } catch (domainErr) {
+                    domainError = domainErr.message;
+                }
+                
+                configTestResults.documentProperties = {
+                    titleModification: titleChanged,
+                    domainAccess: domainAccessible,
+                    originalTitle: originalTitle,
+                    currentTitle: document.title,
+                    domain: document.domain,
+                    domainError: domainError,
+                    securityRisk: titleChanged ? 'Low - Title modification possible' : 'None'
+                };
+                
+                if (titleChanged) {
+                    log('browser', '🚨 Document title modification successful!', 'critical');
+                    log('browser', `  Original: "${originalTitle}"`, 'info');
+                    log('browser', `  Modified: "${document.title}"`, 'info');
+                    modificationsSuccessful++;
+                    successfulAttacks++;
+                    
+                    // Restore original title
+                    document.title = originalTitle;
+                } else {
+                    log('browser', '✅ Document title modification blocked', 'success');
+                }
+                
+                if (domainAccessible) {
+                    log('browser', '🚨 Document domain accessible!', 'critical');
+                } else {
+                    log('browser', `✅ Document domain protected: ${domainError || 'Access denied'}`, 'success');
+                }
+                
+            } catch (error) {
+                configTestResults.documentProperties = {
+                    accessible: false,
+                    error: error.message,
+                    securityStatus: 'Protected'
+                };
+                log('browser', `✅ Document property modification denied: ${error.message}`, 'success');
+            }
+            
+            // Display comprehensive results
+            if (modificationsSuccessful > 0) {
+                displayDataTable('browser', `🚨 CRITICAL: ${modificationsSuccessful}/${totalTests} Configuration Modifications Successful`, 
+                    Object.entries(configTestResults).map(([key, value]) => ({
+                        'Configuration Area': key,
+                        'Accessible': value.accessible ? 'YES' : 'NO',
+                        'Write Access': value.writeAccess ? 'YES' : 'NO',
+                        'Security Risk': value.securityRisk || 'N/A',
+                        'Details': value.error || 'Modification successful'
+                    })), 
+                    ['Configuration Area', 'Accessible', 'Write Access', 'Security Risk', 'Details']
+                );
+                
+                log('browser', `🚨 CRITICAL: ${modificationsSuccessful} configuration areas modifiable!`, 'critical');
+            } else {
+                displayHighlightBox('browser', 'CONFIGURATION MODIFICATION RESULTS', 
+                    `✅ NO CONFIGURATION MODIFICATIONS POSSIBLE\n\nTested ${totalTests} configuration areas - all properly protected.\nBrowser configuration isolation is functioning correctly.`);
+                log('browser', `✅ Configuration protection effective - 0/${totalTests} modifications successful`, 'success');
+            }
+            
+            // Detailed configuration summary
+            const configSummary = {
+                totalConfigurationAreasTests: totalTests,
+                successfulModifications: modificationsSuccessful,
+                blockedModifications: totalTests - modificationsSuccessful,
+                localStorageAccess: configTestResults.localStorage?.accessible ? 'VULNERABLE' : 'PROTECTED',
+                sessionStorageAccess: configTestResults.sessionStorage?.accessible ? 'VULNERABLE' : 'PROTECTED',
+                cookieManipulation: configTestResults.cookies?.writeAccess ? 'VULNERABLE' : 'PROTECTED',
+                historyManipulation: configTestResults.history?.accessible ? 'VULNERABLE' : 'PROTECTED',
+                documentModification: configTestResults.documentProperties?.titleModification ? 'VULNERABLE' : 'PROTECTED',
+                overallSecurityStatus: modificationsSuccessful === 0 ? 'SECURE' : modificationsSuccessful < 3 ? 'PARTIALLY VULNERABLE' : 'HIGHLY VULNERABLE',
+                recommendations: modificationsSuccessful > 0 ? [
+                    'Implement stricter storage access controls',
+                    'Review browser configuration policies',
+                    'Monitor for configuration-based attacks',
+                    'Consider additional isolation mechanisms'
+                ] : [
+                    'Browser configuration isolation is working correctly',
+                    'Continue monitoring for new bypass techniques'
+                ]
+            };
+            
+            displayDataCard('browser', '📊 Configuration Modification Security Assessment', configSummary, 'key-value');
+            
+            // Show detailed breakdown for each accessible area
+            Object.entries(configTestResults).forEach(([area, results]) => {
+                if (results.accessible) {
+                    displayDataCard('browser', `🚨 ${area.toUpperCase()} - Detailed Access Report`, results, 'json');
+                }
+            });
+            
+            // Final explicit status
+            if (modificationsSuccessful > 0) {
+                log('browser', '🚨 CONFIGURATION MODIFICATION TEST COMPLETE - VULNERABILITIES FOUND', 'critical');
+                log('browser', `${modificationsSuccessful}/${totalTests} configuration areas are modifiable`, 'critical');
+                log('browser', 'Browser configuration isolation has bypasses available', 'critical');
+            } else {
+                log('browser', '✅ CONFIGURATION MODIFICATION TEST COMPLETE - NO VULNERABILITIES', 'success');
+                log('browser', 'All browser configuration areas are properly protected', 'success');
+                log('browser', 'Configuration isolation is functioning correctly', 'success');
             }
             
             updateStats();
-            log('browser', 'Configuration modification tests completed', 'success');
         }
 
         async function testLocalFileAccess() {
@@ -2191,59 +2753,270 @@ testIPs.forEach(ip => {
         }
 
         async function testInternalAssets() {
-            log('network', '🎯 Testing access to internal assets...', 'critical');
+            log('network', '🎯 Starting comprehensive internal asset accessibility testing...', 'critical');
             escapeAttempts++;
             
+            const output = document.getElementById('network-output');
+            
+            // Clear previous results
+            const existingSections = output.querySelectorAll('.screenshot-section, .highlight-box');
+            existingSections.forEach(section => {
+                if (section.textContent.includes('Internal') || section.textContent.includes('Asset')) {
+                    section.remove();
+                }
+            });
+            
+            displayHighlightBox('network', 'INTERNAL ASSET ACCESSIBILITY TESTING', 'Testing access to client internal infrastructure and services...');
+            
+            if (targets.length === 0) {
+                displayHighlightBox('network', 'NO TARGETS CONFIGURED', 
+                    `⚠️ NO INTERNAL TARGETS TO TEST\n\nNo targets have been configured for testing.\nPlease upload a target list or manually add targets before running this test.\n\nTo add targets:\n1. Upload CSV/TXT file with target list\n2. Manually enter targets in the target management section\n3. Use the "Generate Local Network Range" feature`);
+                log('network', '⚠️ No targets configured for testing', 'warning');
+                log('network', 'Please add targets before running internal asset tests', 'warning');
+                return;
+            }
+            
+            log('network', `Testing access to ${targets.length} configured internal targets...`, 'info');
+            
             let accessibleCount = 0;
-            const totalTargets = targets.length;
+            let blockedCount = 0;
+            let errorCount = 0;
+            const accessibleTargets = [];
+            const blockedTargets = [];
+            const errorTargets = [];
+            const detailedResults = [];
             
             for (let i = 0; i < targets.length; i++) {
                 const target = targets[i];
                 const fullTarget = target.port ? `${target.host}:${target.port}` : target.host;
                 
+                log('network', `Testing target ${i + 1}/${targets.length}: ${fullTarget}`, 'info');
+                
+                const targetResult = {
+                    host: target.host,
+                    port: target.port || 'default',
+                    fullTarget: fullTarget,
+                    service: target.service || 'unknown',
+                    status: 'unknown',
+                    protocols: {},
+                    responseTime: null,
+                    error: null,
+                    headers: {},
+                    accessible: false
+                };
+                
                 try {
                     const protocols = ['http', 'https'];
+                    let protocolSuccess = false;
                     
                     for (const protocol of protocols) {
                         try {
                             const startTime = Date.now();
-                            const response = await fetch(`${protocol}://${fullTarget}`, {
+                            const testUrl = `${protocol}://${fullTarget}`;
+                            
+                            log('network', `  Trying ${protocol.toUpperCase()}: ${testUrl}`, 'info');
+                            
+                            const response = await fetch(testUrl, {
                                 method: 'HEAD',
                                 mode: 'no-cors',
-                                signal: AbortSignal.timeout(3000)
+                                signal: AbortSignal.timeout(5000)
                             });
                             
                             const responseTime = Date.now() - startTime;
-                            target.status = 'accessible';
-                            log('network', `✅ ${fullTarget} accessible via ${protocol.toUpperCase()} (${responseTime}ms)`, 'success');
-                            accessibleCount++;
-                            break; // Success with one protocol is enough
+                            
+                            targetResult.protocols[protocol] = {
+                                accessible: true,
+                                status: response.status || 'unknown',
+                                responseTime: responseTime,
+                                headers: response.headers ? Object.fromEntries(response.headers.entries()) : {}
+                            };
+                            
+                            if (!protocolSuccess) {
+                                targetResult.status = 'accessible';
+                                targetResult.responseTime = responseTime;
+                                targetResult.accessible = true;
+                                targetResult.primaryProtocol = protocol;
+                                protocolSuccess = true;
+                                
+                                log('network', `  ✅ SUCCESS via ${protocol.toUpperCase()} (${responseTime}ms)`, 'success');
+                            }
                             
                         } catch (protocolError) {
-                            // Try next protocol
+                            targetResult.protocols[protocol] = {
+                                accessible: false,
+                                error: protocolError.message,
+                                timeout: protocolError.name === 'AbortError'
+                            };
+                            
+                            log('network', `  ❌ ${protocol.toUpperCase()} failed: ${protocolError.message}`, 'info');
                         }
                     }
                     
-                    if (target.status === 'unknown') {
+                    if (protocolSuccess) {
+                        target.status = 'accessible';
+                        accessibleTargets.push(targetResult);
+                        accessibleCount++;
+                        
+                        // Create accessible target card
+                        const accessibleHtml = `
+                            <div class="network-host">
+                                <div class="host-info">
+                                    <strong>🎯 ${fullTarget}</strong> - ${targetResult.primaryProtocol.toUpperCase()} (${targetResult.responseTime}ms)
+                                    <br><small>Service: ${target.service} | Protocols: ${Object.keys(targetResult.protocols).filter(p => targetResult.protocols[p].accessible).join(', ')}</small>
+                                </div>
+                                <div class="host-status accessible">ACCESSIBLE</div>
+                            </div>
+                        `;
+                        output.innerHTML += accessibleHtml;
+                        
+                        log('network', `🚨 INTERNAL ASSET ACCESSIBLE: ${fullTarget}`, 'critical');
+                        log('network', `  Protocol: ${targetResult.primaryProtocol.toUpperCase()}`, 'critical');
+                        log('network', `  Response Time: ${targetResult.responseTime}ms`, 'info');
+                        log('network', `  Service: ${target.service}`, 'info');
+                        successfulAttacks++;
+                    } else {
                         target.status = 'blocked';
+                        targetResult.status = 'blocked';
+                        blockedTargets.push(targetResult);
+                        blockedCount++;
+                        
+                        log('network', `🔒 Target blocked: ${fullTarget}`, 'warning');
+                        log('network', `  All protocols failed: ${protocols.join(', ')}`, 'info');
                     }
                     
                 } catch (error) {
                     target.status = 'error';
-                    log('network', `❌ ${fullTarget} - Error: ${error.message}`, 'error');
+                    targetResult.status = 'error';
+                    targetResult.error = error.message;
+                    errorTargets.push(targetResult);
+                    errorCount++;
+                    
+                    log('network', `❌ Error testing ${fullTarget}: ${error.message}`, 'error');
                 }
                 
-                updateProgress(i + 1, totalTargets);
-                await new Promise(resolve => setTimeout(resolve, 100)); // Rate limiting
+                detailedResults.push(targetResult);
+                updateProgress(i + 1, targets.length);
+                
+                // Rate limiting to avoid overwhelming the network
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
             
+            // Display comprehensive results
             if (accessibleCount > 0) {
-                successfulAttacks++;
+                displayDataTable('network', `🚨 CRITICAL: ${accessibleCount} Internal Assets Accessible`, 
+                    accessibleTargets.map(target => ({
+                        'Target': target.fullTarget,
+                        'Service': target.service,
+                        'Primary Protocol': target.primaryProtocol?.toUpperCase() || 'N/A',
+                        'Response Time': target.responseTime ? `${target.responseTime}ms` : 'N/A',
+                        'Status': 'ACCESSIBLE',
+                        'Available Protocols': Object.keys(target.protocols).filter(p => target.protocols[p].accessible).join(', ')
+                    })), 
+                    ['Target', 'Service', 'Primary Protocol', 'Response Time', 'Status', 'Available Protocols']
+                );
+                
+                log('network', `🚨 CRITICAL SECURITY BREACH: ${accessibleCount} internal assets accessible!`, 'critical');
+            } else {
+                displayHighlightBox('network', 'INTERNAL ASSET ACCESS RESULTS', 
+                    `✅ NO INTERNAL ASSETS ACCESSIBLE\n\nTested ${targets.length} internal targets - all properly isolated.\nNetwork isolation policies are functioning correctly.\n\nTested targets: ${targets.length}\nAccessible: 0\nBlocked: ${blockedCount}\nErrors: ${errorCount}`);
+                log('network', `✅ Network isolation effective - 0/${targets.length} assets accessible`, 'success');
+            }
+            
+            // Display blocked targets summary if any
+            if (blockedCount > 0) {
+                displayDataTable('network', `🔒 Blocked Internal Assets (${blockedCount} targets)`, 
+                    blockedTargets.slice(0, 10).map(target => ({ // Show first 10 blocked targets
+                        'Target': target.fullTarget,
+                        'Service': target.service,
+                        'HTTP Status': target.protocols.http?.error || 'Blocked',
+                        'HTTPS Status': target.protocols.https?.error || 'Blocked',
+                        'Result': 'BLOCKED'
+                    })), 
+                    ['Target', 'Service', 'HTTP Status', 'HTTPS Status', 'Result']
+                );
+            }
+            
+            // Display error targets if any
+            if (errorCount > 0) {
+                displayDataTable('network', `❌ Target Testing Errors (${errorCount} targets)`, 
+                    errorTargets.slice(0, 5).map(target => ({ // Show first 5 error targets
+                        'Target': target.fullTarget,
+                        'Service': target.service,
+                        'Error': target.error,
+                        'Result': 'ERROR'
+                    })), 
+                    ['Target', 'Service', 'Error', 'Result']
+                );
+            }
+            
+            // Comprehensive internal asset summary
+            const assetSummary = {
+                totalTargetsTested: targets.length,
+                accessibleAssets: accessibleCount,
+                blockedAssets: blockedCount,
+                errorAssets: errorCount,
+                successRate: targets.length > 0 ? `${((accessibleCount / targets.length) * 100).toFixed(1)}%` : '0%',
+                networkIsolationStatus: accessibleCount === 0 ? 'SECURE' : accessibleCount < (targets.length * 0.3) ? 'PARTIALLY BYPASSED' : 'CRITICALLY COMPROMISED',
+                accessibleServices: [...new Set(accessibleTargets.map(t => t.service))],
+                accessibleProtocols: [...new Set(accessibleTargets.flatMap(t => Object.keys(t.protocols).filter(p => t.protocols[p].accessible)))],
+                averageResponseTime: accessibleTargets.length > 0 ? 
+                    `${(accessibleTargets.reduce((sum, t) => sum + (t.responseTime || 0), 0) / accessibleTargets.length).toFixed(0)}ms` : 'N/A',
+                securityImplications: accessibleCount > 0 ? [
+                    'Internal network accessible from browser isolation',
+                    'Potential for lateral movement within network',
+                    'Internal services exposed to browser-based attacks',
+                    'Network segmentation may be ineffective'
+                ] : [
+                    'Network isolation functioning correctly',
+                    'Internal assets properly protected from browser access',
+                    'No immediate network-based attack vectors identified'
+                ],
+                recommendations: accessibleCount > 0 ? [
+                    'Implement stricter network isolation policies',
+                    'Review firewall rules for browser isolation environment',
+                    'Monitor for suspicious internal network access',
+                    'Consider additional network segmentation',
+                    'Audit accessible internal services for vulnerabilities'
+                ] : [
+                    'Current network isolation is effective',
+                    'Continue monitoring for new bypass techniques',
+                    'Regularly test network isolation effectiveness'
+                ]
+            };
+            
+            displayDataCard('network', '📊 Internal Asset Accessibility Assessment', assetSummary, 'key-value');
+            
+            // Show detailed protocol breakdown for accessible targets
+            if (accessibleTargets.length > 0) {
+                accessibleTargets.forEach((target, index) => {
+                    if (index < 5) { // Show detailed info for first 5 accessible targets
+                        displayDataCard('network', `🚨 Accessible Target Details: ${target.fullTarget}`, {
+                            host: target.host,
+                            port: target.port,
+                            service: target.service,
+                            primaryProtocol: target.primaryProtocol,
+                            responseTime: `${target.responseTime}ms`,
+                            httpAccess: target.protocols.http?.accessible ? 'Available' : 'Blocked',
+                            httpsAccess: target.protocols.https?.accessible ? 'Available' : 'Blocked',
+                            securityRisk: 'High - Internal asset accessible from isolated browser'
+                        }, 'key-value');
+                    }
+                });
             }
             
             updateTargetList();
             updateStats();
-            log('network', `Internal asset testing completed. ${accessibleCount}/${totalTargets} targets accessible`, 'success');
+            
+            // Final explicit status
+            if (accessibleCount > 0) {
+                log('network', '🚨 INTERNAL ASSET TESTING COMPLETE - CRITICAL VULNERABILITIES FOUND', 'critical');
+                log('network', `${accessibleCount}/${targets.length} internal assets are accessible from browser`, 'critical');
+                log('network', 'Network isolation has been bypassed - immediate attention required', 'critical');
+            } else {
+                log('network', '✅ INTERNAL ASSET TESTING COMPLETE - NO VULNERABILITIES', 'success');
+                log('network', `All ${targets.length} internal targets are properly isolated`, 'success');
+                log('network', 'Network isolation is functioning correctly', 'success');
+            }
         }
 
         async function portScanTargets() {
