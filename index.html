@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔍 Local Storage Enumeration Tool</title>
+    <title>🗂️ Local File Access Test</title>
     <style>
         body {
             font-family: 'Courier New', monospace;
@@ -22,10 +22,10 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
-            border: 2px solid #00ff00;
+            border: 2px solid #ff0000;
             padding: 20px;
             border-radius: 8px;
-            background: #001a00;
+            background: #1a0000;
         }
         
         .section {
@@ -41,42 +41,17 @@
             background: #1a0000; 
         }
         
-        .success { 
-            border-color: #00ff00; 
-            background: #001a00; 
+        .warning { 
+            border-color: #ffaa00; 
+            background: #1a1500; 
         }
         
-        button {
-            background: #2d5a27;
-            color: #00ff00;
-            border: 2px solid #00ff00;
-            padding: 12px 20px;
-            margin: 8px 5px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: bold;
-            border-radius: 5px;
-            transition: all 0.3s;
-            font-size: 14px;
+        .info { 
+            border-color: #4dabf7; 
+            background: #001a1a; 
         }
         
-        button:hover {
-            background: #00ff00;
-            color: #000;
-        }
-        
-        .critical-btn {
-            background: #5a1a1a;
-            border-color: #ff0000;
-            color: #ff6b6b;
-        }
-        
-        .critical-btn:hover {
-            background: #ff0000;
-            color: #fff;
-        }
-        
-        .storage-section {
+        .file-category {
             margin: 20px 0;
             padding: 15px;
             border: 1px solid #444;
@@ -84,680 +59,561 @@
             background: #2a2a2a;
         }
         
-        .storage-title {
+        .category-title {
             font-size: 18px;
             font-weight: bold;
             color: #4dabf7;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             padding-bottom: 5px;
             border-bottom: 1px solid #444;
         }
         
-        .storage-item {
-            background: #000;
-            border: 1px solid #333;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 3px;
-        }
-        
-        .storage-key {
-            color: #ffaa00;
-            font-weight: bold;
-            word-break: break-all;
-        }
-        
-        .storage-value {
-            color: #00ff00;
-            margin-top: 5px;
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 200px;
-            overflow-y: auto;
-            font-size: 12px;
-        }
-        
-        .storage-meta {
-            color: #888;
-            font-size: 11px;
-            margin-top: 5px;
-        }
-        
-        .summary-stats {
-            display: flex;
-            justify-content: space-around;
-            background: #2a2a2a;
-            padding: 15px;
-            border-radius: 5px;
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 15px;
             margin: 15px 0;
-            text-align: center;
         }
         
-        .stat-number {
-            font-size: 24px;
-            font-weight: bold;
-            color: #ff6b6b;
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            color: #888;
-        }
-        
-        .no-data {
-            color: #888;
-            font-style: italic;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .error {
-            color: #ff6b6b;
-            background: #2a0000;
-            padding: 10px;
-            border-radius: 3px;
-            margin: 10px 0;
-        }
-        
-        .success-msg {
-            color: #00ff00;
-            background: #002a00;
-            padding: 10px;
-            border-radius: 3px;
-            margin: 10px 0;
-        }
-        
-        .json-container {
+        .file-item {
             background: #000;
             border: 1px solid #333;
+            padding: 12px;
             border-radius: 3px;
-            padding: 10px;
-            margin: 10px 0;
-            max-height: 300px;
-            overflow-y: auto;
+            transition: all 0.3s;
         }
         
-        .export-section {
-            margin: 20px 0;
+        .file-item:hover {
+            border-color: #00ff00;
+            background: #001a00;
+        }
+        
+        .file-link {
+            color: #4dabf7;
+            text-decoration: none;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            word-break: break-all;
+        }
+        
+        .file-link:hover {
+            color: #00ff00;
+        }
+        
+        .file-link:visited {
+            color: #ff6b6b;
+        }
+        
+        .file-description {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .file-risk {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        
+        .risk-critical {
+            background: #5a1a1a;
+            color: #ff6b6b;
+        }
+        
+        .risk-high {
+            background: #5a3a1a;
+            color: #ffaa00;
+        }
+        
+        .risk-medium {
+            background: #3a3a1a;
+            color: #ffff00;
+        }
+        
+        .risk-low {
+            background: #1a3a1a;
+            color: #4dabf7;
+        }
+        
+        .test-results {
+            margin-top: 20px;
             padding: 15px;
             background: #2a2a2a;
             border-radius: 5px;
+        }
+        
+        .instructions {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #4dabf7;
+        }
+        
+        .warning-box {
+            background: #2a1500;
+            border: 2px solid #ffaa00;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .success-indicator {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        
+        .fail-indicator {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .status-item {
+            padding: 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .accessible {
+            background: #2a0000;
+            border: 1px solid #ff0000;
+            color: #ff6b6b;
+        }
+        
+        .blocked {
+            background: #002a00;
+            border: 1px solid #00ff00;
+            color: #00ff00;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔍 Local Storage Enumeration Tool</h1>
-            <p>Comprehensive browser storage enumeration and content extraction</p>
+            <h1>🗂️ Local File Access Test</h1>
+            <p>Testing file:// and chrome:// protocol access from browser isolation</p>
         </div>
 
-        <div class="section">
-            <h2>🚀 Storage Enumeration Controls</h2>
-            <button class="critical-btn" onclick="enumerateAllStorage()">🔍 Enumerate All Storage</button>
-            <button onclick="clearResults()">🗑️ Clear Results</button>
-            <button onclick="exportResults()">📁 Export Results</button>
+        <div class="warning-box">
+            <h3>⚠️ SECURITY TESTING WARNING</h3>
+            <p>This page tests local file system access and internal browser page access. If any links below are accessible, it indicates a potential security bypass in the browser isolation environment.</p>
+            <p><strong>Expected Behavior:</strong> All file:// links should be blocked in a properly isolated browser.</p>
         </div>
 
-        <div id="results-container">
-            <!-- Results will be populated here -->
+        <div class="instructions">
+            <h3>📋 Testing Instructions</h3>
+            <ol>
+                <li>Click on each link below to test accessibility</li>
+                <li>Links that load content indicate successful bypass</li>
+                <li>Links that show errors or are blocked indicate proper isolation</li>
+                <li>Note which links are accessible vs blocked for reporting</li>
+                <li>Red/visited links indicate successful access attempts</li>
+            </ol>
         </div>
 
-        <div class="section success">
-            <h2>📊 Summary Statistics</h2>
-            <div class="summary-stats">
-                <div>
-                    <div class="stat-number" id="total-items">0</div>
-                    <div class="stat-label">Total Items</div>
+        <!-- Windows Files -->
+        <div class="section critical">
+            <div class="file-category">
+                <div class="category-title">🪟 Windows System Files</div>
+                <div class="file-grid">
+                    <div class="file-item">
+                        <a href="file:///C:/Windows/System32/drivers/etc/hosts" class="file-link">file:///C:/Windows/System32/drivers/etc/hosts</a>
+                        <div class="file-description">Windows hosts file - contains DNS mappings</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///C:/Windows/win.ini" class="file-link">file:///C:/Windows/win.ini</a>
+                        <div class="file-description">Windows initialization file</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///C:/Windows/System32/config/SAM" class="file-link">file:///C:/Windows/System32/config/SAM</a>
+                        <div class="file-description">Security Account Manager database</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///C:/Windows/System32/config/SYSTEM" class="file-link">file:///C:/Windows/System32/config/SYSTEM</a>
+                        <div class="file-description">System registry hive</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///C:/Windows/System32/config/SOFTWARE" class="file-link">file:///C:/Windows/System32/config/SOFTWARE</a>
+                        <div class="file-description">Software registry hive</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///C:/boot.ini" class="file-link">file:///C:/boot.ini</a>
+                        <div class="file-description">Boot configuration file (legacy)</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///C:/pagefile.sys" class="file-link">file:///C:/pagefile.sys</a>
+                        <div class="file-description">Virtual memory paging file</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///C:/hiberfil.sys" class="file-link">file:///C:/hiberfil.sys</a>
+                        <div class="file-description">Hibernation file with memory dump</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
                 </div>
-                <div>
-                    <div class="stat-number" id="storage-types">0</div>
-                    <div class="stat-label">Storage Types</div>
-                </div>
-                <div>
-                    <div class="stat-number" id="total-size">0</div>
-                    <div class="stat-label">Total Size (KB)</div>
-                </div>
-                <div>
-                    <div class="stat-number" id="accessible-storages">0</div>
-                    <div class="stat-label">Accessible</div>
+                
+                <div class="category-title">👤 Windows User Files</div>
+                <div class="file-grid">
+                    <div class="file-item">
+                        <a href="file:///C:/Users/" class="file-link">file:///C:/Users/</a>
+                        <div class="file-description">Users directory listing</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///C:/Users/Administrator/" class="file-link">file:///C:/Users/Administrator/</a>
+                        <div class="file-description">Administrator profile directory</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///C:/Users/Public/Desktop/" class="file-link">file:///C:/Users/Public/Desktop/</a>
+                        <div class="file-description">Public desktop folder</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="export-section">
-            <h3>📋 Export Options</h3>
-            <button onclick="copyToClipboard()">📋 Copy to Clipboard</button>
-            <button onclick="downloadAsJSON()">💾 Download JSON</button>
-            <button onclick="downloadAsCSV()">📄 Download CSV</button>
+        <!-- macOS Files -->
+        <div class="section critical">
+            <div class="file-category">
+                <div class="category-title">🍎 macOS System Files</div>
+                <div class="file-grid">
+                    <div class="file-item">
+                        <a href="file:///etc/hosts" class="file-link">file:///etc/hosts</a>
+                        <div class="file-description">macOS hosts file - DNS mappings</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///etc/passwd" class="file-link">file:///etc/passwd</a>
+                        <div class="file-description">User account information</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///etc/shadow" class="file-link">file:///etc/shadow</a>
+                        <div class="file-description">Password shadow file</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///etc/sudoers" class="file-link">file:///etc/sudoers</a>
+                        <div class="file-description">Sudo configuration file</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///Library/Preferences/" class="file-link">file:///Library/Preferences/</a>
+                        <div class="file-description">System preferences directory</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///System/Library/CoreServices/SystemVersion.plist" class="file-link">file:///System/Library/CoreServices/SystemVersion.plist</a>
+                        <div class="file-description">macOS version information</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                </div>
+                
+                <div class="category-title">🏠 macOS User Files</div>
+                <div class="file-grid">
+                    <div class="file-item">
+                        <a href="file:///Users/" class="file-link">file:///Users/</a>
+                        <div class="file-description">Users directory listing</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///Users/Shared/" class="file-link">file:///Users/Shared/</a>
+                        <div class="file-description">Shared users directory</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///.ssh/id_rsa" class="file-link">file:///.ssh/id_rsa</a>
+                        <div class="file-description">SSH private key</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///.ssh/known_hosts" class="file-link">file:///.ssh/known_hosts</a>
+                        <div class="file-description">SSH known hosts</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///.aws/credentials" class="file-link">file:///.aws/credentials</a>
+                        <div class="file-description">AWS credentials file</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///.bashrc" class="file-link">file:///.bashrc</a>
+                        <div class="file-description">Bash configuration file</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Linux Files -->
+        <div class="section critical">
+            <div class="file-category">
+                <div class="category-title">🐧 Linux System Files</div>
+                <div class="file-grid">
+                    <div class="file-item">
+                        <a href="file:///etc/passwd" class="file-link">file:///etc/passwd</a>
+                        <div class="file-description">Linux user account database</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///etc/shadow" class="file-link">file:///etc/shadow</a>
+                        <div class="file-description">Linux password shadow file</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///etc/hosts" class="file-link">file:///etc/hosts</a>
+                        <div class="file-description">Linux hosts file</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///etc/sudoers" class="file-link">file:///etc/sudoers</a>
+                        <div class="file-description">Sudo configuration</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///etc/fstab" class="file-link">file:///etc/fstab</a>
+                        <div class="file-description">Filesystem mount table</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///proc/version" class="file-link">file:///proc/version</a>
+                        <div class="file-description">Kernel version information</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///proc/cpuinfo" class="file-link">file:///proc/cpuinfo</a>
+                        <div class="file-description">CPU information</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///proc/meminfo" class="file-link">file:///proc/meminfo</a>
+                        <div class="file-description">Memory information</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                </div>
+                
+                <div class="category-title">🏠 Linux User Files</div>
+                <div class="file-grid">
+                    <div class="file-item">
+                        <a href="file:///home/" class="file-link">file:///home/</a>
+                        <div class="file-description">Home directory listing</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///root/" class="file-link">file:///root/</a>
+                        <div class="file-description">Root user home directory</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///home/.ssh/id_rsa" class="file-link">file:///home/.ssh/id_rsa</a>
+                        <div class="file-description">SSH private key</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="file:///var/log/auth.log" class="file-link">file:///var/log/auth.log</a>
+                        <div class="file-description">Authentication logs</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chrome Internal Pages -->
+        <div class="section warning">
+            <div class="file-category">
+                <div class="category-title">🔧 Chrome Internal Pages</div>
+                <div class="file-grid">
+                    <div class="file-item">
+                        <a href="chrome://settings/" class="file-link">chrome://settings/</a>
+                        <div class="file-description">Chrome settings page</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="chrome://flags/" class="file-link">chrome://flags/</a>
+                        <div class="file-description">Chrome experimental features</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="chrome://extensions/" class="file-link">chrome://extensions/</a>
+                        <div class="file-description">Chrome extensions management</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="chrome://downloads/" class="file-link">chrome://downloads/</a>
+                        <div class="file-description">Chrome downloads page</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="chrome://history/" class="file-link">chrome://history/</a>
+                        <div class="file-description">Chrome browsing history</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="chrome://bookmarks/" class="file-link">chrome://bookmarks/</a>
+                        <div class="file-description">Chrome bookmarks manager</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="chrome://version/" class="file-link">chrome://version/</a>
+                        <div class="file-description">Chrome version information</div>
+                        <span class="file-risk risk-low">LOW RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="chrome://net-internals/" class="file-link">chrome://net-internals/</a>
+                        <div class="file-description">Chrome network internals</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="chrome://policy/" class="file-link">chrome://policy/</a>
+                        <div class="file-description">Chrome policy information</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="chrome://chrome-urls/" class="file-link">chrome://chrome-urls/</a>
+                        <div class="file-description">List of all Chrome URLs</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="chrome://crashes/" class="file-link">chrome://crashes/</a>
+                        <div class="file-description">Chrome crash reports</div>
+                        <span class="file-risk risk-medium">MEDIUM RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="chrome://gpu/" class="file-link">chrome://gpu/</a>
+                        <div class="file-description">GPU and graphics information</div>
+                        <span class="file-risk risk-low">LOW RISK</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Browser Protocols -->
+        <div class="section info">
+            <div class="file-category">
+                <div class="category-title">🌐 Other Browser Protocols</div>
+                <div class="file-grid">
+                    <div class="file-item">
+                        <a href="about:config" class="file-link">about:config</a>
+                        <div class="file-description">Firefox configuration (if applicable)</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="edge://settings/" class="file-link">edge://settings/</a>
+                        <div class="file-description">Microsoft Edge settings</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="edge://flags/" class="file-link">edge://flags/</a>
+                        <div class="file-description">Microsoft Edge experimental features</div>
+                        <span class="file-risk risk-critical">CRITICAL RISK</span>
+                    </div>
+                    <div class="file-item">
+                        <a href="opera://settings/" class="file-link">opera://settings/</a>
+                        <div class="file-description">Opera browser settings</div>
+                        <span class="file-risk risk-high">HIGH RISK</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-results">
+            <h3>📊 Test Results Summary</h3>
+            <p>Document your findings below as you test each link:</p>
+            <div class="status-grid">
+                <div class="status-item blocked">✅ BLOCKED - Link shows error or access denied</div>
+                <div class="status-item accessible">🚨 ACCESSIBLE - Link loads content successfully</div>
+            </div>
+            <p><strong>Security Impact:</strong></p>
+            <ul>
+                <li><span class="success-indicator">All links blocked</span> = Browser isolation is working correctly</li>
+                <li><span class="fail-indicator">Some/all links accessible</span> = Critical security bypass detected</li>
+            </ul>
         </div>
     </div>
 
     <script>
-        let storageData = {};
-        let totalItems = 0;
-        let totalSize = 0;
-        let accessibleStorages = 0;
-
-        function enumerateAllStorage() {
-            console.log('🔍 Starting comprehensive storage enumeration...');
+        // Track which links have been clicked and their status
+        const linkResults = {};
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🗂️ Local File Access Test loaded');
+            console.log('Click links to test file:// and chrome:// protocol access');
             
-            // Clear previous results
-            document.getElementById('results-container').innerHTML = '';
-            storageData = {};
-            totalItems = 0;
-            totalSize = 0;
-            accessibleStorages = 0;
-
-            // Test localStorage
-            enumerateLocalStorage();
-            
-            // Test sessionStorage
-            enumerateSessionStorage();
-            
-            // Test IndexedDB
-            enumerateIndexedDB();
-            
-            // Test Cookies
-            enumerateCookies();
-            
-            // Test WebSQL (if available)
-            enumerateWebSQL();
-            
-            // Test Cache API
-            enumerateCacheAPI();
-
-            // Update summary
-            updateSummary();
-        }
-
-        function enumerateLocalStorage() {
-            const container = document.getElementById('results-container');
-            const section = document.createElement('div');
-            section.className = 'storage-section';
-            
-            try {
-                const title = document.createElement('div');
-                title.className = 'storage-title';
-                title.textContent = '🗄️ localStorage';
-                section.appendChild(title);
-
-                if (typeof Storage !== 'undefined' && localStorage) {
-                    const keys = Object.keys(localStorage);
+            // Add click tracking to all file links
+            const fileLinks = document.querySelectorAll('.file-link');
+            fileLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const url = this.href;
+                    console.log(`Testing access to: ${url}`);
                     
-                    if (keys.length > 0) {
-                        storageData.localStorage = {};
-                        
-                        keys.forEach(key => {
-                            const value = localStorage.getItem(key);
-                            storageData.localStorage[key] = value;
-                            
-                            const item = document.createElement('div');
-                            item.className = 'storage-item';
-                            
-                            const keyDiv = document.createElement('div');
-                            keyDiv.className = 'storage-key';
-                            keyDiv.textContent = `Key: ${key}`;
-                            
-                            const valueDiv = document.createElement('div');
-                            valueDiv.className = 'storage-value';
-                            valueDiv.textContent = value;
-                            
-                            const metaDiv = document.createElement('div');
-                            metaDiv.className = 'storage-meta';
-                            metaDiv.textContent = `Size: ${value ? value.length : 0} characters | Type: ${typeof value}`;
-                            
-                            item.appendChild(keyDiv);
-                            item.appendChild(valueDiv);
-                            item.appendChild(metaDiv);
-                            section.appendChild(item);
-                            
-                            totalItems++;
-                            totalSize += value ? value.length : 0;
-                        });
-                        
-                        const successMsg = document.createElement('div');
-                        successMsg.className = 'success-msg';
-                        successMsg.textContent = `✅ localStorage accessible - Found ${keys.length} items`;
-                        section.appendChild(successMsg);
-                        
-                        accessibleStorages++;
-                    } else {
-                        const noData = document.createElement('div');
-                        noData.className = 'no-data';
-                        noData.textContent = 'No localStorage data found';
-                        section.appendChild(noData);
-                    }
-                } else {
-                    const error = document.createElement('div');
-                    error.className = 'error';
-                    error.textContent = '❌ localStorage not available';
-                    section.appendChild(error);
-                }
-            } catch (e) {
-                const error = document.createElement('div');
-                error.className = 'error';
-                error.textContent = `❌ localStorage access error: ${e.message}`;
-                section.appendChild(error);
-            }
-            
-            container.appendChild(section);
-        }
-
-        function enumerateSessionStorage() {
-            const container = document.getElementById('results-container');
-            const section = document.createElement('div');
-            section.className = 'storage-section';
-            
-            try {
-                const title = document.createElement('div');
-                title.className = 'storage-title';
-                title.textContent = '📋 sessionStorage';
-                section.appendChild(title);
-
-                if (typeof Storage !== 'undefined' && sessionStorage) {
-                    const keys = Object.keys(sessionStorage);
+                    // Log the attempt
+                    linkResults[url] = {
+                        attempted: true,
+                        timestamp: new Date().toISOString(),
+                        protocol: url.split(':')[0]
+                    };
                     
-                    if (keys.length > 0) {
-                        storageData.sessionStorage = {};
-                        
-                        keys.forEach(key => {
-                            const value = sessionStorage.getItem(key);
-                            storageData.sessionStorage[key] = value;
-                            
-                            const item = document.createElement('div');
-                            item.className = 'storage-item';
-                            
-                            const keyDiv = document.createElement('div');
-                            keyDiv.className = 'storage-key';
-                            keyDiv.textContent = `Key: ${key}`;
-                            
-                            const valueDiv = document.createElement('div');
-                            valueDiv.className = 'storage-value';
-                            valueDiv.textContent = value;
-                            
-                            const metaDiv = document.createElement('div');
-                            metaDiv.className = 'storage-meta';
-                            metaDiv.textContent = `Size: ${value ? value.length : 0} characters | Type: ${typeof value}`;
-                            
-                            item.appendChild(keyDiv);
-                            item.appendChild(valueDiv);
-                            item.appendChild(metaDiv);
-                            section.appendChild(item);
-                            
-                            totalItems++;
-                            totalSize += value ? value.length : 0;
-                        });
-                        
-                        const successMsg = document.createElement('div');
-                        successMsg.className = 'success-msg';
-                        successMsg.textContent = `✅ sessionStorage accessible - Found ${keys.length} items`;
-                        section.appendChild(successMsg);
-                        
-                        accessibleStorages++;
-                    } else {
-                        const noData = document.createElement('div');
-                        noData.className = 'no-data';
-                        noData.textContent = 'No sessionStorage data found';
-                        section.appendChild(noData);
-                    }
-                } else {
-                    const error = document.createElement('div');
-                    error.className = 'error';
-                    error.textContent = '❌ sessionStorage not available';
-                    section.appendChild(error);
-                }
-            } catch (e) {
-                const error = document.createElement('div');
-                error.className = 'error';
-                error.textContent = `❌ sessionStorage access error: ${e.message}`;
-                section.appendChild(error);
-            }
-            
-            container.appendChild(section);
-        }
-
-        function enumerateIndexedDB() {
-            const container = document.getElementById('results-container');
-            const section = document.createElement('div');
-            section.className = 'storage-section';
-            
-            const title = document.createElement('div');
-            title.className = 'storage-title';
-            title.textContent = '💾 IndexedDB';
-            section.appendChild(title);
-
-            try {
-                if (!window.indexedDB) {
-                    const error = document.createElement('div');
-                    error.className = 'error';
-                    error.textContent = '❌ IndexedDB not available';
-                    section.appendChild(error);
-                    container.appendChild(section);
-                    return;
-                }
-
-                // Try to enumerate databases
-                if (indexedDB.databases) {
-                    indexedDB.databases().then(databases => {
-                        if (databases.length > 0) {
-                            storageData.indexedDB = { databases: [] };
-                            
-                            databases.forEach(db => {
-                                const dbInfo = {
-                                    name: db.name,
-                                    version: db.version
-                                };
-                                storageData.indexedDB.databases.push(dbInfo);
-                                
-                                const item = document.createElement('div');
-                                item.className = 'storage-item';
-                                
-                                const keyDiv = document.createElement('div');
-                                keyDiv.className = 'storage-key';
-                                keyDiv.textContent = `Database: ${db.name}`;
-                                
-                                const valueDiv = document.createElement('div');
-                                valueDiv.className = 'storage-value';
-                                valueDiv.textContent = `Version: ${db.version}`;
-                                
-                                item.appendChild(keyDiv);
-                                item.appendChild(valueDiv);
-                                section.appendChild(item);
-                                
-                                totalItems++;
-                            });
-                            
-                            const successMsg = document.createElement('div');
-                            successMsg.className = 'success-msg';
-                            successMsg.textContent = `✅ IndexedDB accessible - Found ${databases.length} databases`;
-                            section.appendChild(successMsg);
-                            
-                            accessibleStorages++;
+                    // Change style to indicate attempt
+                    this.style.fontWeight = 'bold';
+                    
+                    // Try to detect if link was successful (limited detection possible)
+                    setTimeout(() => {
+                        if (document.hasFocus()) {
+                            console.log(`Link may have been blocked: ${url}`);
+                            linkResults[url].likely_blocked = true;
                         } else {
-                            const noData = document.createElement('div');
-                            noData.className = 'no-data';
-                            noData.textContent = 'No IndexedDB databases found';
-                            section.appendChild(noData);
+                            console.log(`Link may have opened: ${url}`);
+                            linkResults[url].likely_opened = true;
                         }
-                        updateSummary();
-                    }).catch(error => {
-                        const errorDiv = document.createElement('div');
-                        errorDiv.className = 'error';
-                        errorDiv.textContent = `❌ IndexedDB enumeration error: ${error.message}`;
-                        section.appendChild(errorDiv);
-                    });
-                } else {
-                    const noData = document.createElement('div');
-                    noData.className = 'no-data';
-                    noData.textContent = 'IndexedDB.databases() not available - cannot enumerate';
-                    section.appendChild(noData);
-                }
-            } catch (e) {
-                const error = document.createElement('div');
-                error.className = 'error';
-                error.textContent = `❌ IndexedDB access error: ${e.message}`;
-                section.appendChild(error);
-            }
-            
-            container.appendChild(section);
-        }
-
-        function enumerateCookies() {
-            const container = document.getElementById('results-container');
-            const section = document.createElement('div');
-            section.className = 'storage-section';
-            
-            const title = document.createElement('div');
-            title.className = 'storage-title';
-            title.textContent = '🍪 Cookies';
-            section.appendChild(title);
-
-            try {
-                const cookies = document.cookie;
-                
-                if (cookies && cookies.length > 0) {
-                    const cookieArray = cookies.split(';').map(cookie => cookie.trim());
-                    storageData.cookies = {};
-                    
-                    cookieArray.forEach(cookie => {
-                        if (cookie) {
-                            const [name, ...valueParts] = cookie.split('=');
-                            const value = valueParts.join('=');
-                            
-                            storageData.cookies[name] = value;
-                            
-                            const item = document.createElement('div');
-                            item.className = 'storage-item';
-                            
-                            const keyDiv = document.createElement('div');
-                            keyDiv.className = 'storage-key';
-                            keyDiv.textContent = `Cookie: ${name}`;
-                            
-                            const valueDiv = document.createElement('div');
-                            valueDiv.className = 'storage-value';
-                            valueDiv.textContent = value || '(empty)';
-                            
-                            const metaDiv = document.createElement('div');
-                            metaDiv.className = 'storage-meta';
-                            metaDiv.textContent = `Size: ${cookie.length} characters`;
-                            
-                            item.appendChild(keyDiv);
-                            item.appendChild(valueDiv);
-                            item.appendChild(metaDiv);
-                            section.appendChild(item);
-                            
-                            totalItems++;
-                            totalSize += cookie.length;
-                        }
-                    });
-                    
-                    const successMsg = document.createElement('div');
-                    successMsg.className = 'success-msg';
-                    successMsg.textContent = `✅ Cookies accessible - Found ${cookieArray.length} cookies`;
-                    section.appendChild(successMsg);
-                    
-                    accessibleStorages++;
-                } else {
-                    const noData = document.createElement('div');
-                    noData.className = 'no-data';
-                    noData.textContent = 'No cookies found';
-                    section.appendChild(noData);
-                }
-            } catch (e) {
-                const error = document.createElement('div');
-                error.className = 'error';
-                error.textContent = `❌ Cookie access error: ${e.message}`;
-                section.appendChild(error);
-            }
-            
-            container.appendChild(section);
-        }
-
-        function enumerateWebSQL() {
-            const container = document.getElementById('results-container');
-            const section = document.createElement('div');
-            section.className = 'storage-section';
-            
-            const title = document.createElement('div');
-            title.className = 'storage-title';
-            title.textContent = '🗃️ WebSQL (Legacy)';
-            section.appendChild(title);
-
-            try {
-                if (window.openDatabase) {
-                    const noData = document.createElement('div');
-                    noData.className = 'no-data';
-                    noData.textContent = 'WebSQL available but deprecated - enumeration skipped';
-                    section.appendChild(noData);
-                } else {
-                    const error = document.createElement('div');
-                    error.className = 'error';
-                    error.textContent = '❌ WebSQL not available';
-                    section.appendChild(error);
-                }
-            } catch (e) {
-                const error = document.createElement('div');
-                error.className = 'error';
-                error.textContent = `❌ WebSQL access error: ${e.message}`;
-                section.appendChild(error);
-            }
-            
-            container.appendChild(section);
-        }
-
-        function enumerateCacheAPI() {
-            const container = document.getElementById('results-container');
-            const section = document.createElement('div');
-            section.className = 'storage-section';
-            
-            const title = document.createElement('div');
-            title.className = 'storage-title';
-            title.textContent = '🗂️ Cache API';
-            section.appendChild(title);
-
-            try {
-                if ('caches' in window) {
-                    caches.keys().then(cacheNames => {
-                        if (cacheNames.length > 0) {
-                            storageData.cacheAPI = { caches: cacheNames };
-                            
-                            cacheNames.forEach(cacheName => {
-                                const item = document.createElement('div');
-                                item.className = 'storage-item';
-                                
-                                const keyDiv = document.createElement('div');
-                                keyDiv.className = 'storage-key';
-                                keyDiv.textContent = `Cache: ${cacheName}`;
-                                
-                                item.appendChild(keyDiv);
-                                section.appendChild(item);
-                                
-                                totalItems++;
-                            });
-                            
-                            const successMsg = document.createElement('div');
-                            successMsg.className = 'success-msg';
-                            successMsg.textContent = `✅ Cache API accessible - Found ${cacheNames.length} caches`;
-                            section.appendChild(successMsg);
-                            
-                            accessibleStorages++;
-                        } else {
-                            const noData = document.createElement('div');
-                            noData.className = 'no-data';
-                            noData.textContent = 'No caches found';
-                            section.appendChild(noData);
-                        }
-                        updateSummary();
-                    }).catch(error => {
-                        const errorDiv = document.createElement('div');
-                        errorDiv.className = 'error';
-                        errorDiv.textContent = `❌ Cache API error: ${error.message}`;
-                        section.appendChild(errorDiv);
-                    });
-                } else {
-                    const error = document.createElement('div');
-                    error.className = 'error';
-                    error.textContent = '❌ Cache API not available';
-                    section.appendChild(error);
-                }
-            } catch (e) {
-                const error = document.createElement('div');
-                error.className = 'error';
-                error.textContent = `❌ Cache API access error: ${e.message}`;
-                section.appendChild(error);
-            }
-            
-            container.appendChild(section);
-        }
-
-        function updateSummary() {
-            document.getElementById('total-items').textContent = totalItems;
-            document.getElementById('storage-types').textContent = Object.keys(storageData).length;
-            document.getElementById('total-size').textContent = Math.round(totalSize / 1024 * 100) / 100;
-            document.getElementById('accessible-storages').textContent = accessibleStorages;
-        }
-
-        function clearResults() {
-            document.getElementById('results-container').innerHTML = '';
-            storageData = {};
-            totalItems = 0;
-            totalSize = 0;
-            accessibleStorages = 0;
-            updateSummary();
-        }
-
-        function exportResults() {
-            const exportData = {
+                    }, 1000);
+                });
+            });
+        });
+        
+        // Function to export test results
+        function exportTestResults() {
+            const results = {
                 timestamp: new Date().toISOString(),
                 userAgent: navigator.userAgent,
                 domain: window.location.hostname,
+                testResults: linkResults,
                 summary: {
-                    totalItems: totalItems,
-                    storageTypes: Object.keys(storageData).length,
-                    totalSizeKB: Math.round(totalSize / 1024 * 100) / 100,
-                    accessibleStorages: accessibleStorages
-                },
-                storageData: storageData
+                    totalLinks: document.querySelectorAll('.file-link').length,
+                    attemptedLinks: Object.keys(linkResults).length,
+                    protocols: {
+                        file: Object.keys(linkResults).filter(url => url.startsWith('file:')).length,
+                        chrome: Object.keys(linkResults).filter(url => url.startsWith('chrome:')).length,
+                        other: Object.keys(linkResults).filter(url => !url.startsWith('file:') && !url.startsWith('chrome:')).length
+                    }
+                }
             };
             
-            console.log('Storage enumeration results:', exportData);
-            return exportData;
+            console.log('Local file access test results:', results);
+            return results;
         }
-
-        function copyToClipboard() {
-            const data = JSON.stringify(exportResults(), null, 2);
-            navigator.clipboard.writeText(data).then(() => {
-                alert('Results copied to clipboard!');
-            }).catch(err => {
-                console.error('Copy failed:', err);
-                alert('Copy failed - check console for data');
-            });
-        }
-
-        function downloadAsJSON() {
-            const data = JSON.stringify(exportResults(), null, 2);
-            const blob = new Blob([data], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `storage_enumeration_${Date.now()}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function downloadAsCSV() {
-            let csv = 'Storage Type,Key,Value,Size\n';
-            
-            Object.entries(storageData).forEach(([storageType, data]) => {
-                if (typeof data === 'object' && data !== null) {
-                    Object.entries(data).forEach(([key, value]) => {
-                        const escapedValue = String(value).replace(/"/g, '""');
-                        csv += `"${storageType}","${key}","${escapedValue}","${String(value).length}"\n`;
-                    });
-                }
-            });
-            
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `storage_enumeration_${Date.now()}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        // Auto-run on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🔍 Local Storage Enumeration Tool loaded');
-            console.log('Click "Enumerate All Storage" to begin analysis');
-        });
+        
+        // Add export functionality
+        window.exportTestResults = exportTestResults;
+        
+        // Console helper
+        console.log('Use exportTestResults() to get detailed test results');
     </script>
 </body>
 </html>
